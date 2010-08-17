@@ -142,7 +142,7 @@ def paste(environ, start_response):
     else:
         body = paste_form()
 
-    html_post = '</body></html>'
+    html_post += '</body></html>'
 
     start_response('200 OK', [('Content-Type', 'text/html'), charset])
     # body is already encoded (by highlight_code, or read_paste)
