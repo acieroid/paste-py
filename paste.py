@@ -80,7 +80,17 @@ def paste(environ, start_response):
     params = FieldStorage(fp=environ['wsgi.input'],
                               environ=environ,
                               keep_blank_values = True)
-    html_pre = '<h1>Paste it §</h1>'
+    html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<head>
+  <title>Paste it §</title>
+  <link rel="stylesheet" type="text/css" href="paste.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<h1>Paste it §</h1>'''
+
     if 'id' in params:
         body = read_paste(filename_path + '/' + params.getvalue('id'))
         if 'raw' in params:
@@ -104,7 +114,7 @@ def paste(environ, start_response):
     else:
         body = paste_form()
 
-    html_post = ""
+    html_post = '</body></html>'
 
     start_response('200 OK', [('Content-Type', 'text/html')])
     return html_pre + body + html_post
