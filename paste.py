@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from cgi import FieldStorage, escape
+from cgi import FieldStorage
 from wsgiref.simple_server import make_server
 
 from pygments import highlight
@@ -17,7 +17,7 @@ title = u'Paste it §'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
-mldown_path = 'mldown'
+mldown_path = 'mldown' # if '', disable the mldown option
 mldown_args = []
 charset = ('charset', 'utf-8')
 
@@ -32,8 +32,14 @@ def list_languages():
                   key=lambda x: x[1].lower())
 
 def format_mldown(code):
+    if mldown_path == '' or not isfile(mldown_path):
+        return ('mldown disabled, source output<br/><pre>' + code + '</pre>')
     pipe = Popen([mldown_path] + mldown_args, stdin=PIPE, stdout=PIPE)
-    return pipe.communicate(code)[0]
+    content = pipe.communicate(code)[0]
+    if pipe.returncode == 0:
+        return content
+    else:
+        return ('mldown failed, source output<br/><pre>' + code + '</pre>')
 
 ### Paste form
 def checkbox(name, label, checked=False, value='on'):
@@ -44,9 +50,10 @@ def checkbox(name, label, checked=False, value='on'):
     return res
 
 def option_boxes():
-    return (checkbox('escape', 'HTML escaping', checked=True)
-            + checkbox('mldown', 
-                       'Format with <a href="http://gitorious.org/mldown">mldown</a>'))
+    checkboxes = ''
+    if mldown_path != '':
+        checkboxes += checkbox('mldown', 'Format with <a href="http://gitorious.org/mldown">mldown</a>')
+    return checkboxes
 
 def language_box():
     res = '<select name="hl">'
@@ -115,8 +122,6 @@ def paste(environ, start_response):
         elif 'mldown' in params:
             start_response('200 OK', [('Content-Type', 'text/html'), charset])
             return format_mldown(body)
-        elif 'ne' in params:
-            body = escape(body)
         elif 'hl' in params:
             body = (highlight_code(body, params.getvalue('hl')))
         else:
@@ -126,8 +131,6 @@ def paste(environ, start_response):
         options = '?id=' + basename(dump_paste(params.getvalue('paste')))
         if params.getvalue('hl', '') != '':
             options += '&hl=' + params.getvalue('hl')
-        if params.getvalue('escape', 'off') == 'off':
-            options += '&ne'
             
         if 'script' in params:
             start_response('200 OK', [('Content-Type', 'text/plain'), charset])
