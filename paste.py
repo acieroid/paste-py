@@ -13,7 +13,7 @@ from os.path import isfile, basename
 from subprocess import Popen, PIPE
 
 ### Options
-title = 'Paste it §'
+title = u'Paste it §'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
@@ -91,7 +91,7 @@ def paste(environ, start_response):
     params = FieldStorage(fp=environ['wsgi.input'],
                               environ=environ,
                               keep_blank_values = True)
-    html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    html_pre = u'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
@@ -101,7 +101,8 @@ def paste(environ, start_response):
 </head>
 <body>
 <h1>''' + title + '''</h1>'''
-
+    html_post = u''
+    body = u''
 
     if 'id' in params:
         body = read_paste(filename_path + '/' + params.getvalue('id'))
@@ -114,10 +115,10 @@ def paste(environ, start_response):
         elif 'ne' in params:
             body = escape(body)
         elif 'hl' in params:
-            body = str(highlight_code(body, params.getvalue('hl')))
+            body = (highlight_code(body, params.getvalue('hl')))
         else:
             html_pre += '<pre>'
-            html_post = '</pre>'
+            html_post += '</pre>'
     elif 'paste' in params:
         options = '?id=' + basename(dump_paste(params.getvalue('paste')))
         if params.getvalue('hl', '') != '':
@@ -134,8 +135,9 @@ def paste(environ, start_response):
 
     html_post = '</body></html>'
 
-    start_response('200 OK', [('Content-Type', 'text/html')])
-    return html_pre + body + html_post
+    start_response('200 OK', [('Content-Type', 'text/html'),
+                              ('charset', 'utf-8')])
+    return (html_pre + body + html_post).encode('utf-8')
 
 def start(port):
     srv = make_server('localhost', port, paste)
