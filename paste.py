@@ -19,7 +19,7 @@ filename_characters = letters + digits
 mldown_path = 'mldown' # if '', disable the mldown option
 mldown_args = []
 charset = ('charset', 'utf-8')
-base_url = "?id="
+base_url = ""
 
 ### Highlight & format
 def highlight_code(code, lang):
@@ -129,7 +129,9 @@ def paste(environ, start_response):
             html_post += '</pre>'
     elif 'paste' in params:
         options = basename(dump_paste(params.getvalue('paste')))
-        if params.getvalue('hl', '') != '':
+        if 'mldown' in params:
+            options += '&mldown'
+        elif params.getvalue('hl', '') != '':
             options += '&hl=' + params.getvalue('hl')
             
         if 'script' in params:
