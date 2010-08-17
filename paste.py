@@ -125,6 +125,9 @@ def paste(environ, start_response):
         if params.getvalue('escape', 'off') == 'off':
             options += "&ne"
             
+        if 'script' in params:
+            start_response('200 OK', [('Content-Type', 'text/plain')])
+            return options
         body = 'Your paste is located <a href="' + options + '">here</a>'
     else:
         body = paste_form()
