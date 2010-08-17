@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from cgi import FieldStorage, escape
 from wsgiref.simple_server import make_server
 
@@ -9,19 +10,27 @@ from pygments.formatters import HtmlFormatter
 from string import letters, digits
 from random import choice
 from os.path import isfile, basename
+from subprocess import Popen, PIPE
 
 ### Options
+title = 'Paste it §'
 filename_path = 'pastes'
-filename_length = 10
+filename_length = 3
 filename_characters = letters + digits
+mldown_path = 'mldown'
+mldown_args = []
 
-### Pygments stuff
+### Highlight & format
 def highlight_code(code, lang):
     return highlight(code, get_lexer_by_name(lang), HtmlFormatter())
 
 def list_languages():
     return sorted(map(lambda x: (x[0], x[1][0]), get_all_lexers()),
                   key=lambda x: x[1].lower())
+
+def format_mldown(code):
+    pipe = Popen([mldown_path] + mldown_args, stdin=PIPE, stdout=PIPE)
+    return pipe.communicate(code)[0]
 
 ### Paste form
 def checkbox(name, label, checked=False, value="on"):
@@ -32,7 +41,9 @@ def checkbox(name, label, checked=False, value="on"):
     return res
 
 def option_boxes():
-    return checkbox('escape', 'HTML escaping', checked=True)
+    return (checkbox('escape', 'HTML escaping', checked=True)
+            + checkbox('mldown', 
+                       'Format with <a href="http://gitorious.org/mldown">mldown</a>'))
 
 def language_box():
     res = '<select name="hl">'
@@ -48,7 +59,7 @@ def paste_form():
     res += '<textarea name="paste" rows="20" cols="80"></textarea><br/>'
     res += language_box()
     res += option_boxes()
-    res += '<input type="submit" name="Paste it §" />'
+    res += '<input type="submit" value="Paste" />'
     return res
 
 ### Access to disk (read & write paste)
@@ -84,21 +95,25 @@ def paste(environ, start_response):
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
-  <title>Paste it §</title>
-  <link rel="stylesheet" type="text/css" href="paste.css" />
+  <title>''' + title + '''</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="paste.css" />
 </head>
 <body>
-<h1>Paste it §</h1>'''
+<h1>''' + title + '''</h1>'''
+
 
     if 'id' in params:
         body = read_paste(filename_path + '/' + params.getvalue('id'))
         if 'raw' in params:
             start_response('200 OK', [('Content-Type', 'text/plain')])
             return body
-        if 'ne' in params:
+        elif 'mldown' in params:
+            start_response('200 OK', [('Content-Type', 'text/html')])
+            return format_mldown(body)
+        elif 'ne' in params:
             body = escape(body)
-        if 'hl' in params:
+        elif 'hl' in params:
             body = str(highlight_code(body, params.getvalue('hl')))
         else:
             html_pre += '<pre>'
@@ -107,7 +122,7 @@ def paste(environ, start_response):
         options = '?id=' + basename(dump_paste(params.getvalue('paste')))
         if params.getvalue('hl', '') != '':
             options += "&hl=" + params.getvalue('hl')
-        if params.getvalue('escape', 'off') == 'on':
+        if params.getvalue('escape', 'off') == 'off':
             options += "&ne"
             
         body = 'Your paste is located <a href="' + options + '">here</a>'
@@ -124,4 +139,4 @@ def start(port):
     srv.serve_forever()
 
 if __name__ == '__main__':
-    start(8080)
+    start(8081)
