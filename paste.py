@@ -145,6 +145,3 @@ def paste(environ, start_response):
     # body is already encoded (by highlight_code, or read_paste)
     return html_pre.encode('utf-8') + body + html_post.encode('utf-8')
 
-if __name__ == '__main__':
-   from flup.server.fcgi import WSGIServer
-    WSGIServer(paste).run()
