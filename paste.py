@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from cgi import FieldStorage
-from wsgiref.simple_server import make_server
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, get_all_lexers
@@ -146,9 +145,6 @@ def paste(environ, start_response):
     # body is already encoded (by highlight_code, or read_paste)
     return html_pre.encode('utf-8') + body + html_post.encode('utf-8')
 
-def start(port):
-    srv = make_server('localhost', port, paste)
-    srv.serve_forever()
-
 if __name__ == '__main__':
-    start(8080)
+   from flup.server.fcgi import WSGIServer
+    WSGIServer(paste).run()
