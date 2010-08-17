@@ -20,6 +20,7 @@ filename_characters = letters + digits
 mldown_path = 'mldown' # if '', disable the mldown option
 mldown_args = []
 charset = ('charset', 'utf-8')
+base_url = "?id="
 
 ### Highlight & format
 def highlight_code(code, lang):
@@ -128,14 +129,14 @@ def paste(environ, start_response):
             html_pre += '<pre>'
             html_post += '</pre>'
     elif 'paste' in params:
-        options = '?id=' + basename(dump_paste(params.getvalue('paste')))
+        options = basename(dump_paste(params.getvalue('paste')))
         if params.getvalue('hl', '') != '':
             options += '&hl=' + params.getvalue('hl')
             
         if 'script' in params:
             start_response('200 OK', [('Content-Type', 'text/plain'), charset])
             return options
-        body = 'Your paste is located <a href="' + options + '">here</a>'
+        body = 'Your paste is located <a href="' + base_url + options + '">here</a>'
     else:
         body = paste_form()
 
