@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from cgi import FieldStorage
+from cgi import FieldStorage, escape
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, get_all_lexers
@@ -125,6 +125,7 @@ def paste(environ, start_response):
         elif 'hl' in params:
             body = (highlight_code(body, params.getvalue('hl')))
         else:
+            body = escape(body)
             html_pre += '<pre>'
             html_post += '</pre>'
     elif 'paste' in params:
