@@ -19,10 +19,13 @@ filename_length = 3
 filename_characters = letters + digits
 mldown_path = 'mldown'
 mldown_args = []
+charset = ('charset', 'utf-8')
 
 ### Highlight & format
 def highlight_code(code, lang):
-    return highlight(code, get_lexer_by_name(lang), HtmlFormatter())
+    res = highlight(code, get_lexer_by_name(lang), HtmlFormatter())
+    # weird but it works
+    return res.encode('iso-8859-1')
 
 def list_languages():
     return sorted(map(lambda x: (x[0], x[1][0]), get_all_lexers()),
@@ -33,7 +36,7 @@ def format_mldown(code):
     return pipe.communicate(code)[0]
 
 ### Paste form
-def checkbox(name, label, checked=False, value="on"):
+def checkbox(name, label, checked=False, value='on'):
     res = '<label><input type="checkbox" name="' + name + '" value="' + value + '" '
     if checked:
         res += 'checked="checked"'
@@ -83,7 +86,7 @@ def dump_paste(content):
     return filename
 
 def read_paste(filename):
-    f = open(filename, "r")
+    f = open(filename, 'r')
     return f.read()
 
 ### App
@@ -107,10 +110,10 @@ def paste(environ, start_response):
     if 'id' in params:
         body = read_paste(filename_path + '/' + params.getvalue('id'))
         if 'raw' in params:
-            start_response('200 OK', [('Content-Type', 'text/plain')])
+            start_response('200 OK', [('Content-Type', 'text/plain'), charset])
             return body
         elif 'mldown' in params:
-            start_response('200 OK', [('Content-Type', 'text/html')])
+            start_response('200 OK', [('Content-Type', 'text/html'), charset])
             return format_mldown(body)
         elif 'ne' in params:
             body = escape(body)
@@ -122,12 +125,12 @@ def paste(environ, start_response):
     elif 'paste' in params:
         options = '?id=' + basename(dump_paste(params.getvalue('paste')))
         if params.getvalue('hl', '') != '':
-            options += "&hl=" + params.getvalue('hl')
+            options += '&hl=' + params.getvalue('hl')
         if params.getvalue('escape', 'off') == 'off':
-            options += "&ne"
+            options += '&ne'
             
         if 'script' in params:
-            start_response('200 OK', [('Content-Type', 'text/plain')])
+            start_response('200 OK', [('Content-Type', 'text/plain'), charset])
             return options
         body = 'Your paste is located <a href="' + options + '">here</a>'
     else:
@@ -135,13 +138,13 @@ def paste(environ, start_response):
 
     html_post = '</body></html>'
 
-    start_response('200 OK', [('Content-Type', 'text/html'),
-                              ('charset', 'utf-8')])
-    return (html_pre + body + html_post).encode('utf-8')
+    start_response('200 OK', [('Content-Type', 'text/html'), charset])
+    # body is already encoded (by highlight_code, or read_paste)
+    return html_pre.encode('utf-8') + body + html_post.encode('utf-8')
 
 def start(port):
     srv = make_server('localhost', port, paste)
     srv.serve_forever()
 
 if __name__ == '__main__':
-    start(8081)
+    start(8080)
