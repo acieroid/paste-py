@@ -8,7 +8,8 @@ from pygments.formatters import HtmlFormatter
 
 from string import letters, digits
 from random import choice
-from os.path import isfile, basename
+from os.path import isfile, basename, exists
+from os import mkdir, listdir
 from subprocess import Popen, PIPE
 
 ### Options
@@ -16,7 +17,7 @@ title = u'Paste it §'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
-mldown_path = 'mldown' # if '', disable the mldown option
+mldown_path = '' # if '', disable the mldown option
 mldown_args = []
 charset = ('charset', 'utf-8')
 base_url = ""
@@ -60,33 +61,55 @@ def language_box():
     res += '<option value="">No highlighting</option>'
     for (language, lang) in list_languages():
         res += '<option value="' + lang + '">' + language + '</option>\n'
-    res += '</select>'
+    res += '</select><br/>'
     return res
-        
+
+def name_field():
+    res = '<label for="uname">Name (optional):</label><br />'
+    res += '<input type="text" name="uname" id="uname" />'
+    return res
+
 def paste_form():
     res = ''
     res += '<form method="post" action="/" enctype="multipart/form-data">'
     res += '<textarea name="paste" rows="20" cols="80"></textarea><br/>'
     res += language_box()
     res += option_boxes()
+    res += name_field()
     res += '<input type="submit" value="Paste" />'
     return res
 
 ### Access to disk (read & write paste)
+def user_dir(user):
+    return "%s/%s" % (filename_path, user)
+
 def random_filename():
-    res = filename_path + '/'
+    res = ''
     for i in xrange(filename_length):
         res += choice(filename_characters)
     return res
 
-def new_path():
-    filename = random_filename()
+def new_path(user):
+    path = ''
+    if user is not None:
+        path = user_dir(user)
+    else:
+        path = filename_path
+
+    def fn():
+        return '%s/%s' % (path, random_filename())
+
+    filename = fn()
     while isfile(filename):
-        filename = random_filename()
+        filename = fn()
+
+    if user is not None:
+        if not exists(path):
+            mkdir(path)
     return filename
 
-def dump_paste(content):
-    filename = new_path()
+def dump_paste(content, user):
+    filename = new_path(user)
     f = open(filename, 'w')
     f.write(content)
     f.close()
@@ -95,6 +118,14 @@ def dump_paste(content):
 def read_paste(filename):
     f = open(filename, 'r')
     return f.read()
+
+def pastes_for_user(user):
+    pastes = []
+    for filename in listdir(user_dir(user)):
+        print filename
+        if isfile(user_dir(user) + '/' + filename):
+            pastes.append(filename)
+    return pastes
 
 ### App
 def paste(environ, start_response):
@@ -129,7 +160,10 @@ def paste(environ, start_response):
             html_pre += '<pre>'
             html_post += '</pre>'
     elif 'paste' in params:
-        options = basename(dump_paste(params.getvalue('paste')))
+        usr = params.getvalue('uname')
+        options = basename(dump_paste(params.getvalue('paste'), usr))
+        if usr:
+            options = '%s/%s' % (usr, options)
         if 'mldown' in params:
             options += '&mldown'
         elif params.getvalue('hl', '') != '':
@@ -139,7 +173,16 @@ def paste(environ, start_response):
             start_response('200 OK', [('Content-Type', 'text/plain'), charset])
             return options
         body = 'Your paste is located <a href="' + base_url + options + '">here</a>'
+    elif 'user' in params:
+        usr = params.getvalue('user')
+        pastes = pastes_for_user(usr)
+        body += '<h2>Pastes for %s</h1>' % usr
+        body += '<ul>'
+        for p in pastes:
+            body += '<li><a href="' + base_url + usr + '/' + p + '">' + p + '</a></li>'
+        body += '</ul>'
     else:
+        print params.getvalue('user')
         body = paste_form()
 
     html_post += '</body></html>'
@@ -147,4 +190,3 @@ def paste(environ, start_response):
     start_response('200 OK', [('Content-Type', 'text/html'), charset])
     # body is already encoded (by highlight_code, or read_paste)
     return html_pre.encode('utf-8') + body + html_post.encode('utf-8')
-
