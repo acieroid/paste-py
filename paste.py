@@ -125,7 +125,7 @@ def pastes_for_user(user):
         print filename
         if isfile(user_dir(user) + '/' + filename):
             pastes.append(filename)
-    return pastes.encode(
+    return pastes
 
 ### App
 def paste(environ, start_response):
