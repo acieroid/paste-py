@@ -125,7 +125,7 @@ def pastes_for_user(user):
         print filename
         if isfile(user_dir(user) + '/' + filename):
             pastes.append(filename)
-    return pastes
+    return pastes.encode(
 
 ### App
 def paste(environ, start_response):
@@ -181,6 +181,7 @@ def paste(environ, start_response):
         for p in pastes:
             body += '<li><a href="' + base_url + usr + '/' + p + '">' + p + '</a></li>'
         body += '</ul>'
+        body = body.encode('utf-8')
     else:
         print params.getvalue('user')
         body = paste_form()
