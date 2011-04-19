@@ -138,7 +138,7 @@ def paste(environ, start_response):
 <head>
   <title>''' + title + '''</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="stylesheet" type="text/css" href="paste.css" />
+  <link rel="stylesheet" type="text/css" href="/paste.css" />
 </head>
 <body>
 <h1>''' + title + '''</h1>'''
