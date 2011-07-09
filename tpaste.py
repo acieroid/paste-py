@@ -67,7 +67,7 @@ def language_box():
     return res
 
 def name_field():
-    res = '<label for="uname">Name (optional):</label><br />'
+    res = '<label for="uname">User (optional):</label><br />'
     res += '<input type="text" name="uname" id="uname" />'
     return res
 
