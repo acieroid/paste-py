@@ -21,7 +21,10 @@ filename_length = 3
 filename_characters = letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
-base_url = ""
+production = False
+base_url = ''
+if not production:
+    base_url += '?id='
 
 ### Highlight & format
 def highlight_code(code, lang):
@@ -130,7 +133,7 @@ def pastes_for_user(user):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        html_pre = u'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
@@ -203,4 +206,5 @@ application = tornado.web.Application([
 
 if __name__ == "__main__":
     application.listen(8888)
+    application.debug = not production
     tornado.ioloop.IOLoop.instance().start()
