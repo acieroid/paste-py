@@ -69,8 +69,8 @@ def language_box():
     return res
 
 def name_field():
-    res = '<label for="uname">User (optional):</label><br />'
-    res += '<input type="text" name="uname" id="uname" />'
+    res = '<label for="user">User (optional):</label><br />'
+    res += '<input type="text" name="user" id="user" />'
     return res
 
 def paste_form():
@@ -182,12 +182,12 @@ class MainHandler(tornado.web.RequestHandler):
             body += '<h2>Pastes for %s</h2>' % user
             body += '<ul>'
             for paste in pastes:
-                body += ('<li><a href="' + base_url + usr + '/' +
+                body += ('<li><a href="' + base_url + user + '/' +
                          paste + '">' + paste + '</a></li>')
             body += '</ul>'
         else:
             body = paste_form()
-    
+
         html_post += '</body></html>'
         self.content_type = 'text/html'
         self.write(html_pre)
