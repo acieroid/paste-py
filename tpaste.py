@@ -161,7 +161,7 @@ class MainHandler(tornado.web.RequestHandler):
                 html_post += '</pre>'
         elif self.get_argument('paste', False):
             user = self.get_argument('user', '')
-            options = basename(dump_paste(self.get_argument('paste'),
+            options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                           user))
             if user:
                 options = '%s/%s' % (user, options)
