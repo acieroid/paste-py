@@ -15,7 +15,7 @@ from os import mkdir, listdir
 from subprocess import Popen, PIPE
 
 ### Options
-title = ''
+title = 'Paste it §'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
@@ -141,8 +141,7 @@ class MainHandler(tornado.web.RequestHandler):
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="/paste.css" />
 </head>
-<body>
-<h1>''' + title + '''</h1>'''
+<body>'''
         html_post = ''
         paste_content = ''
         body = ''
@@ -186,6 +185,7 @@ class MainHandler(tornado.web.RequestHandler):
                          paste + '">' + paste + '</a></li>')
             body += '</ul>'
         else:
+            html_pre += '<h1>%s</h1>' % title
             body = paste_form()
 
         html_post += '</body></html>'
