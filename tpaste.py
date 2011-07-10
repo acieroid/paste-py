@@ -10,7 +10,7 @@ from pygments.formatters import HtmlFormatter
 
 from string import letters, digits
 from random import choice
-from os.path import isfile, basename, exists
+from os.path import isfile, dirname, basename, exists
 from os import mkdir, listdir
 from subprocess import Popen, PIPE
 
@@ -21,7 +21,6 @@ filename_length = 3
 filename_characters = letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
-charset = ('charset', 'utf-8')
 base_url = ""
 
 ### Highlight & format
@@ -198,6 +197,8 @@ class MainHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
+    (r"/(paste\.css)", tornado.web.StaticFileHandler, 
+     dict(path=dirname(__file__))),
 ])
 
 if __name__ == "__main__":
