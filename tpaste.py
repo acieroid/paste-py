@@ -7,6 +7,7 @@ from tornado.escape import xhtml_escape as escape
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, get_all_lexers
 from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
 
 from string import letters, digits
 from random import choice
@@ -153,8 +154,13 @@ class MainHandler(tornado.web.RequestHandler):
                 self.write(paste_content)
                 return
             elif self.get_argument('hl', False):
-                paste_content = highlight_code(paste_content,
-                                               self.get_argument('hl'))
+                try:
+                    paste_content = highlight_code(paste_content,
+                                                   self.get_argument('hl'))
+                except ClassNotFound:
+                    paste_content = escape(paste_content)
+                    html_pre += '<pre>'
+                    html_post += '</pre>'
             else:
                 paste_content = escape(paste_content)
                 html_pre += '<pre>'
