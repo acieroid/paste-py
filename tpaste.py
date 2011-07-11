@@ -82,6 +82,7 @@ def paste_form():
     res += option_boxes()
     res += name_field()
     res += '<input type="submit" value="Paste" />'
+    res += '</form>'
     return res
 
 ### Access to disk (read & write paste)
