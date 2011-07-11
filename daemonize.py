@@ -10,5 +10,5 @@ cwd = getcwd()
 daemonize(no_close=True, pidfile=cwd+'/paste.pid')
 # ... and we go back in this directory
 chdir(cwd)
-execv(PYTHON_PATH + PYTHON2_EXECUTABLE, [PYTHON2_EXECUTABLE, 'tpaste.py'])
+execv(PYTHON_PATH + PYTHON2_EXECUTABLE, [PYTHON2_EXECUTABLE, 'paste.py'])
 

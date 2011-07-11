@@ -1,26 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from cgi import FieldStorage, escape
+import tornado.ioloop
+import tornado.web
+from tornado.escape import xhtml_escape as escape
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, get_all_lexers
 from pygments.formatters import HtmlFormatter
+from pygments.util import ClassNotFound
 
 from string import letters, digits
 from random import choice
-from os.path import isfile, basename, exists
+from os.path import isfile, dirname, basename, exists
 from os import mkdir, listdir
 from subprocess import Popen, PIPE
 
 ### Options
-title = u'Paste it §'
+title = 'Paste it §'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
-charset = ('charset', 'utf-8')
-base_url = ""
+production = False
+base_url = ''
+if not production:
+    base_url += '?id='
 
 ### Highlight & format
 def highlight_code(code, lang):
@@ -65,8 +70,8 @@ def language_box():
     return res
 
 def name_field():
-    res = '<label for="uname">Name (optional):</label><br />'
-    res += '<input type="text" name="uname" id="uname" />'
+    res = '<label for="user">User (optional):</label><br />'
+    res += '<input type="text" name="user" id="user" />'
     return res
 
 def paste_form():
@@ -77,6 +82,7 @@ def paste_form():
     res += option_boxes()
     res += name_field()
     res += '<input type="submit" value="Paste" />'
+    res += '</form>'
     return res
 
 ### Access to disk (read & write paste)
@@ -122,17 +128,14 @@ def read_paste(filename):
 def pastes_for_user(user):
     pastes = []
     for filename in listdir(user_dir(user)):
-        print filename
         if isfile(user_dir(user) + '/' + filename):
             pastes.append(filename)
     return pastes
 
-### App
-def paste(environ, start_response):
-    params = FieldStorage(fp=environ['wsgi.input'],
-                              environ=environ,
-                              keep_blank_values = True)
-    html_pre = u'''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
@@ -140,54 +143,75 @@ def paste(environ, start_response):
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="/paste.css" />
 </head>
-<body>
-<h1>''' + title + '''</h1>'''
-    html_post = u''
-    body = u''
+<body>'''
+        html_post = ''
+        paste_content = ''
+        body = ''
+        if self.get_argument('id', False):
+            paste_content = read_paste(filename_path + '/' + 
+                                       self.get_argument('id'))
+            if self.get_argument('raw', False):
+                self.content_type = 'text/plain'
+                self.write(paste_content)
+                return
+            elif self.get_argument('hl', False):
+                try:
+                    paste_content = highlight_code(paste_content,
+                                                   self.get_argument('hl'))
+                except ClassNotFound:
+                    paste_content = escape(paste_content)
+                    html_pre += '<pre>'
+                    html_post += '</pre>'
+            else:
+                paste_content = escape(paste_content)
+                html_pre += '<pre>'
+                html_post += '</pre>'
+        elif self.get_argument('paste', False):
+            user = self.get_argument('user', '')
+            options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
+                                          user))
+            if user:
+                options = '%s/%s' % (user, options)
+            if self.get_argument('mldown', False):
+                options += '&mldown'
+            elif self.get_argument('hl', False):
+                options += '&hl=' + self.get_argument('hl')
 
-    if 'id' in params:
-        body = read_paste(filename_path + '/' + params.getvalue('id'))
-        if 'raw' in params:
-            start_response('200 OK', [('Content-Type', 'text/plain'), charset])
-            return body
-        elif 'mldown' in params:
-            start_response('200 OK', [('Content-Type', 'text/html'), charset])
-            return format_mldown(body)
-        elif 'hl' in params:
-            body = (highlight_code(body, params.getvalue('hl')))
+            if self.get_argument('script', False):
+                self.content_type = 'text/plain'
+                self.write(options)
+            body = ('Your paste is located <a href="' + base_url +
+                    options + '">here</a>')
+        elif self.get_argument('user', False):
+            user = self.get_argument('user', '')
+            pastes = pastes_for_user(user)
+            body += '<h2>Pastes for %s</h2>' % user
+            body += '<ul>'
+            for paste in pastes:
+                body += ('<li><a href="' + base_url + user + '/' +
+                         paste + '">' + paste + '</a></li>')
+            body += '</ul>'
         else:
-            body = escape(body)
-            html_pre += '<pre>'
-            html_post += '</pre>'
-    elif 'paste' in params:
-        usr = params.getvalue('uname')
-        options = basename(dump_paste(params.getvalue('paste'), usr))
-        if usr:
-            options = '%s/%s' % (usr, options)
-        if 'mldown' in params:
-            options += '&mldown'
-        elif params.getvalue('hl', '') != '':
-            options += '&hl=' + params.getvalue('hl')
+            html_pre += '<h1>%s</h1>' % title
+            body = paste_form()
+
+        html_post += '</body></html>'
+        self.content_type = 'text/html'
+        self.write(html_pre)
+        self.write(body) # either body or paste_content is non-null
+        self.write(paste_content)
+        self.write(html_post)
+    def post(self):
+        self.get()
             
-        if 'script' in params:
-            start_response('200 OK', [('Content-Type', 'text/plain'), charset])
-            return options
-        body = 'Your paste is located <a href="' + base_url + options + '">here</a>'
-    elif 'user' in params:
-        usr = params.getvalue('user')
-        pastes = pastes_for_user(usr)
-        body += '<h2>Pastes for %s</h1>' % usr
-        body += '<ul>'
-        for p in pastes:
-            body += '<li><a href="' + base_url + usr + '/' + p + '">' + p + '</a></li>'
-        body += '</ul>'
-        body = body.encode('utf-8')
-    else:
-        print params.getvalue('user')
-        body = paste_form()
 
-    html_post += '</body></html>'
+application = tornado.web.Application([
+    (r"/", MainHandler),
+    (r"/(paste\.css)", tornado.web.StaticFileHandler, 
+     dict(path=dirname(__file__))),
+])
 
-    start_response('200 OK', [('Content-Type', 'text/html'), charset])
-    # body is already encoded (by highlight_code, or read_paste)
-    return html_pre.encode('utf-8') + body + html_post.encode('utf-8')
+if __name__ == "__main__":
+    application.listen(8888)
+    application.debug = not production
+    tornado.ioloop.IOLoop.instance().start()
