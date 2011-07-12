@@ -149,7 +149,7 @@ class MainHandler(tornado.web.RequestHandler):
         body = ''
         if self.get_argument('id', False):
             paste_content = read_paste(filename_path + '/' + 
-                                       self.get_argument('id'))
+                                       self.get_argument('id').encode('utf-8'))
             if self.get_argument('raw', False):
                 self.content_type = 'text/plain'
                 self.write(paste_content)
@@ -167,7 +167,7 @@ class MainHandler(tornado.web.RequestHandler):
                 html_pre += '<pre>'
                 html_post += '</pre>'
         elif self.get_argument('paste', False):
-            user = self.get_argument('user', '')
+            user = self.get_argument('user', '').encode('utf-8')
             options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                           user))
             if user:
