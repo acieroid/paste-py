@@ -150,7 +150,7 @@ class MainHandler(tornado.web.RequestHandler):
         if self.get_argument('id', False):
             paste_content = read_paste(filename_path + '/' + 
                                        self.get_argument('id').encode('utf-8'))
-            if self.get_argument('raw', False):
+            if '&raw' in self.request.body:
                 self.content_type = 'text/plain'
                 self.write(paste_content)
                 return
@@ -172,14 +172,15 @@ class MainHandler(tornado.web.RequestHandler):
                                           user))
             if user:
                 options = '%s/%s' % (user, options)
-            if self.get_argument('mldown', False):
+            if '&mldown' in self.request.body:
                 options += '&mldown'
             elif self.get_argument('hl', False):
                 options += '&hl=' + self.get_argument('hl')
 
-            if self.get_argument('script', False):
+            if '&script' in self.request.body:
                 self.content_type = 'text/plain'
                 self.write(options)
+                return
             body = ('Your paste is located <a href="' + base_url +
                     options + '">here</a>')
         elif self.get_argument('user', False):
