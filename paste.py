@@ -167,7 +167,7 @@ class MainHandler(tornado.web.RequestHandler):
                 html_pre += '<pre>'
                 html_post += '</pre>'
         elif self.get_argument('paste', False):
-            user = self.get_argument('user', '').encode('utf-8')
+            user = escape(self.get_argument('user', '').encode('utf-8'))
             options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                           user))
             if user:
@@ -184,7 +184,7 @@ class MainHandler(tornado.web.RequestHandler):
             body = ('Your paste is located <a href="' + base_url +
                     options + '">here</a>')
         elif self.get_argument('user', False):
-            user = self.get_argument('user', '')
+            user = escape(self.get_argument('user', '').encode('utf-8'))
             pastes = pastes_for_user(user)
             body += '<h2>Pastes for %s</h2>' % user
             body += '<ul>'
