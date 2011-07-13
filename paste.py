@@ -23,7 +23,7 @@ filename_characters = letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
 production = False
-base_url = ''
+base_url = '/'
 if not production:
     base_url += '?id='
 
