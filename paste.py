@@ -175,7 +175,7 @@ class MainHandler(tornado.web.RequestHandler):
             if '&mldown' in self.request.body:
                 options += '&mldown'
             elif self.get_argument('hl', False):
-                options += '&hl=' + self.get_argument('hl')
+                options += '&hl=' + self.get_argument('hl').encode('utf-8')
 
             if '&script' in self.request.body:
                 self.content_type = 'text/plain'
