@@ -122,8 +122,11 @@ def dump_paste(content, user):
     return filename
 
 def read_paste(filename):
-    f = open(filename, 'r')
-    return f.read()
+    try:
+        f = open(filename, 'r')
+        return f.read()
+    except IOError:
+      raise tornado.web.HTTPError(404)
 
 def pastes_for_user(user):
     pastes = []
