@@ -154,7 +154,7 @@ class MainHandler(tornado.web.RequestHandler):
             paste_content = read_paste(filename_path + '/' + 
                                        self.get_argument('id').encode('utf-8'))
             if '&raw' in self.request.uri:
-                self.set_header("Content-Type", "text/plain")
+                self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(paste_content)
                 return
             elif self.get_argument('hl', False):
@@ -181,7 +181,7 @@ class MainHandler(tornado.web.RequestHandler):
                 options += '&hl=' + self.get_argument('hl').encode('utf-8')
 
             if '&script' in self.request.body:
-                self.set_header("Content-Type", "text/plain")
+                self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
                 return
             body = ('Your paste is located <a href="' + base_url +
