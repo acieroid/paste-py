@@ -194,6 +194,6 @@ se plaindre. Si par contre c'est supporté, [[Contact][ping]] moi et je mettrais
 jour pygments sur le serveur où tourne paste.
 * Contact
 Pour me contacter, tu =/query acieroid= sur epiknet ou freenode, tu
-m'hl sur un chan quelconque où je suis, où tu m'envoie un mail à
+m'hl sur un chan quelconque où je suis, ou tu m'envoie un mail à
 =acieroid@awesom.eu=.
 
