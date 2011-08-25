@@ -51,8 +51,10 @@ Si tu as envie de vite paster un fichier sans devoir l'ouvrir, le
 copier, le coller dans l'interface web et appuyer sur le bouton, tu
 peux utiliser le script [[https://github.com/acieroid/paste-py/blob/master/paste.sh][paste.sh]] (à condition que tu aies [[http://curl.haxx.se/][curl]]
 d'installé). Son fonctionnement est très simple: tu l'appelles avec le
-nom du fichier à paster en argument et il te retourne l'URL du paste.
-
+nom du fichier à paster en argument et il te retourne l'URL du paste. Au cas où tu serais un gros flemmard d'assisté, voici la petite ligne façon wiki d'Ubuntu, qui te permettra d'installer le script.
+#+BEGIN_SRC
+curl https://raw.github.com/acieroid/paste-py/master/paste.sh > paste.sh && chmod +x paste.sh 
+#+END_SRC
 NougatRillettes a fait quelques ajouts au niveau du script: tu peux
 spécifier l'user en troisième argument (le second argument étant le
 langage), ou bien même mettre un user par défaut en dur dans le
