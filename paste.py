@@ -27,6 +27,9 @@ base_url = '/'
 if not production:
     base_url += '?id='
 
+def valid_username(username):
+    return not ('/' in username)
+
 ### Highlight & format
 def highlight_code(code, lang):
     res = highlight(code, get_lexer_by_name(lang), HtmlFormatter())
@@ -135,7 +138,6 @@ def pastes_for_user(user):
             pastes.append(filename)
     return pastes
 
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -171,6 +173,9 @@ class MainHandler(tornado.web.RequestHandler):
                 html_post += '</pre>'
         elif self.get_argument('paste', False):
             user = escape(self.get_argument('user', '').encode('utf-8'))
+            if not valid_username(user):
+                raise tornado.web.HTTPError(404)
+            
             options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                           user))
             if user:
@@ -188,6 +193,8 @@ class MainHandler(tornado.web.RequestHandler):
                     options + '">here</a>')
         elif self.get_argument('user', False):
             user = escape(self.get_argument('user', '').encode('utf-8'))
+            if not valid_username(user):
+                raise tornado.web.HTTPError(404)
             pastes = pastes_for_user(user)
             body += '<h2>Pastes for %s</h2>' % user
             body += '<ul>'
