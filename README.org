@@ -1,3 +1,5 @@
+#+LINK_HOME: index.html
+#+EMAIL:
 paste-py - La documentation
 
 Tu as toujours tout voulu savoir sur comment utiliser [[http://paste.awesom.eu][paste]] ? Tu t'es
@@ -151,7 +153,7 @@ débrouille beaucoup mieux, autant sur les petit pastes que sur les
 gros. Les deux résultats suivants ont étés obtenus en laissant tourner
 =siege= avec l'option =b= pendant 100 secondes.
 
-Avec un paste de trois caractères
+Avec un paste de trois caractères:
 
 |                         | Tornado          | WSGI + gunicorn (3 workers) |
 |-------------------------+------------------+-----------------------------|

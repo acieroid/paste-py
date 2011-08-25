@@ -17,6 +17,7 @@ from subprocess import Popen, PIPE
 
 ### Options
 title = 'Paste it §'
+doc = '(<a href="http://awesom.eu/~acieroid/articles/paste.html">doc</a>)'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = letters + digits
@@ -203,7 +204,8 @@ class MainHandler(tornado.web.RequestHandler):
                          paste + '">' + paste + '</a></li>')
             body += '</ul>'
         else:
-            html_pre += '<h1>%s</h1>' % title
+            html_pre += ('<h1>%s <span style="font-size: 12px">%s</span></h1>' % 
+                         (title, doc))
             body = paste_form()
 
         html_post += '</body></html>'
