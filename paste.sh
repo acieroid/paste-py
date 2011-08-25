@@ -2,6 +2,9 @@
 URL=http://paste.awesom.eu
 DEFAULTUSER=Babass
 PREFEREDLANG=default
+#PRINT & COPY are some kind of booleans, if they are empty they stand for False, otherwise, they stand for True
+PRINT=
+COPY=
 
 if test -n "$1" ; then
     FILE=$1
@@ -28,4 +31,11 @@ fi
 
 PASTE=$(curl -d "hl=${LANG}&user=${USER}&escape=on&script" --data-urlencode paste@${FILE} $URL 2>/dev/null)
 
-echo "$URL/$PASTE"
+FINAL="$URL/$PASTE"
+if test -n "$PRINT" ; then 
+	echo "$FINAL"
+fi
+
+if test -n "$COPY" ; then
+	echo $FINAL|xclip -i
+fi
