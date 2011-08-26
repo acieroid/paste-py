@@ -43,7 +43,7 @@ def list_languages():
 
 def lang_from_ext(ext):
     try:
-        return get_lexer_for_filename(ext).aliases[0]
+        return get_lexer_for_filename('.' + ext).aliases[0]
     except (ClassNotFound, IndexError):
         return ''
 
@@ -192,7 +192,9 @@ class MainHandler(tornado.web.RequestHandler):
             elif self.get_argument('hl', False):
                 options += '&hl=' + self.get_argument('hl').encode('utf-8')
             elif self.get_argument('ext', False):
-                options += '&hl=' + lang_from_ext(self.get_argument('ext').encode('utf-8'))
+                hl = lang_from_ext(self.get_argument('ext').encode('utf-8'))
+                if hl != '':
+                    options += '&hl=' + hl
             
             if '&script' in self.request.body:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
