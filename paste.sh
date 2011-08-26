@@ -28,7 +28,7 @@ fi
 if [ -n "$2" ] ; then
     LANG="$2"
 else
-    EXT="`echo '$1'|sed -e 's/.*\.//'`"
+    EXT="`echo \"$1\"|sed -e 's/.*\.//'`"
     LANG=""
 fi
 
