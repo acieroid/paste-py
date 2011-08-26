@@ -5,7 +5,7 @@ import tornado.web
 from tornado.escape import xhtml_escape as escape
 
 from pygments import highlight
-from pygments.lexers import get_lexer_by_name, get_all_lexers
+from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_lexers
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
@@ -40,6 +40,12 @@ def highlight_code(code, lang):
 def list_languages():
     return sorted(map(lambda x: (x[0], x[1][0]), get_all_lexers()),
                   key=lambda x: x[1].lower())
+
+def lang_from_ext(ext):
+    try:
+        return get_lexer_for_filename(ext).aliases[0]
+    except (ClassNotFound, IndexError):
+        return ''
 
 def format_mldown(code):
     if mldown_path == '' or not isfile(mldown_path):
@@ -185,7 +191,9 @@ class MainHandler(tornado.web.RequestHandler):
                 options += '&mldown'
             elif self.get_argument('hl', False):
                 options += '&hl=' + self.get_argument('hl').encode('utf-8')
-
+            elif self.get_argument('ext', False):
+                options += '&hl=' + lang_from_ext(self.get_argument('ext').encode('utf-8'))
+            
             if '&script' in self.request.body:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
