@@ -185,8 +185,11 @@ class MainHandler(tornado.web.RequestHandler):
                     html_post += '</pre>'
             else:
                 if '&ln' in self.request.uri:
+                    # TODO: line numbers not aligned with 'table', so
+                    # we must use 'inline' (but there's no problem if
+                    # the code is highlighted)
                     paste_content = highlight_code(paste_content,
-                                                   'text', linenos_type)
+                                                   'text', 'inline')
                 else:
                     paste_content = escape(paste_content)
                 html_pre += '<pre>'
