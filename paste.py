@@ -9,7 +9,7 @@ from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_l
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
-from string import letters, digits
+from string import ascii_letters, digits
 from random import choice
 from os.path import isfile, dirname, basename, exists
 from os import mkdir, listdir
@@ -20,9 +20,10 @@ title = 'Paste it §'
 doc = '(<a href="http://awesom.eu/~acieroid/articles/paste.html">doc</a>)'
 filename_path = 'pastes'
 filename_length = 3
-filename_characters = letters + digits
+filename_characters = ascii_letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
+linenos_type = 'table' # 'table', 'inline' or '' (table is  copy-paste friendly)
 production = False
 base_url = '/'
 if not production:
@@ -32,8 +33,9 @@ def valid_username(username):
     return not ('/' in username)
 
 ### Highlight & format
-def highlight_code(code, lang):
-    res = highlight(code, get_lexer_by_name(lang), HtmlFormatter())
+def highlight_code(code, lang, linenos=''):
+    res = highlight(code, get_lexer_by_name(lang),
+                    HtmlFormatter(linenos=linenos))
     # weird but it works
     return res.encode('iso-8859-1')
 
@@ -160,7 +162,7 @@ class MainHandler(tornado.web.RequestHandler):
         paste_content = ''
         body = ''
         if self.get_argument('id', False):
-            paste_content = read_paste(filename_path + '/' + 
+            paste_content = read_paste(filename_path + '/' +
                                        self.get_argument('id').encode('utf-8'))
             if '&raw' in self.request.uri:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
@@ -168,21 +170,30 @@ class MainHandler(tornado.web.RequestHandler):
                 return
             elif self.get_argument('hl', False):
                 try:
-                    paste_content = highlight_code(paste_content,
-                                                   self.get_argument('hl'))
+                    if '&ln' in self.request.uri:
+                        paste_content = highlight_code(paste_content,
+                                                       self.get_argument('hl'),
+                                                       linenos_type)
+                    else:
+                        paste_content = highlight_code(paste_content,
+                                                       self.get_argument('hl'))
                 except ClassNotFound:
                     paste_content = escape(paste_content)
                     html_pre += '<pre>'
                     html_post += '</pre>'
             else:
-                paste_content = escape(paste_content)
+                if '&ln' in self.request.uri:
+                    paste_content = highlight_code(paste_content,
+                                                   'text', linenos_type)
+                else:
+                    paste_content = escape(paste_content)
                 html_pre += '<pre>'
                 html_post += '</pre>'
         elif self.get_argument('paste', False):
             user = escape(self.get_argument('user', '').encode('utf-8'))
             if not valid_username(user):
                 raise tornado.web.HTTPError(404)
-            
+
             options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                           user))
             if user:
@@ -195,7 +206,7 @@ class MainHandler(tornado.web.RequestHandler):
                 hl = lang_from_ext(self.get_argument('ext').encode('utf-8'))
                 if hl != '':
                     options += '&hl=' + hl
-            
+
             if '&script' in self.request.body:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
@@ -214,7 +225,7 @@ class MainHandler(tornado.web.RequestHandler):
                          paste + '">' + paste + '</a></li>')
             body += '</ul>'
         else:
-            html_pre += ('<h1>%s <span style="font-size: 12px">%s</span></h1>' % 
+            html_pre += ('<h1>%s <span style="font-size: 12px">%s</span></h1>' %
                          (title, doc))
             body = paste_form()
 
@@ -226,11 +237,11 @@ class MainHandler(tornado.web.RequestHandler):
         self.write(html_post)
     def post(self):
         self.get()
-            
+
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/(paste\.css)", tornado.web.StaticFileHandler, 
+    (r"/(paste\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
 ])
 
