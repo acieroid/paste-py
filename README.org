@@ -39,6 +39,9 @@ Si jamais l'envie te viens de vouloir télécharger un paste (avec
 =wget=, =fetch=, =curl=, ...), prends soin d'ajouter le paramètre
 =&raw= à l'url, pour obtenir le contenu du paste uniquement, et pas
 toute la page bourrée d'html au milieu du paste.
+** Numéros de ligne
+Pour avoir de magnifiques numéros à côté de chaque ligne, il te suffit
+d'ajouter le paramètre =&ln= dans l'url.
 ** Users
 Grâce à xarch, paste inclut un système d'utilisateurs qui permet de
 retrouver facilement ses pastes. Pour paster avec un user, tu indiques
@@ -63,6 +66,15 @@ langage), ou bien même mettre un user par défaut en dur dans le
 script. Le script peut aussi utiliser =xclip= ou =xsel= pour /copier/
 l'url de ton paste dans ton presse-papier. Bref pour ça, tu ouvre le
 =paste.sh= avec ton éditeur favori et tu regarde les premières lignes.
+** CSS
+Plusieurs CSS sont disponibles pour faire plaisirs à ceux qui
+préfèrent un design clair ou plus sombre:
+  - Un thème clair par défaut repris du site de [[http://pygments.org/][Pygments]]
+  - Un thème sombre repris de [[http://the-lambda-church.org/][The Lambda Church]]
+  - Un autre thème sombre repris du site du [[http://progmod.org/][Programmeur Moderne]]
+
+Ton navigateur devrait te permettre de choisir l'un ou l'autre style
+(et si c'est pas le cas, tant pis pour toi).
 ** mldown
 Il y a eu, pendant un court moment, une option pour formatter un paste
 avec [[http://kiwi.iuwt.fr/~asmanur/mldown/][mldown]]. Hélas un jour mldown s'est mis à fonctionner bizarrement
