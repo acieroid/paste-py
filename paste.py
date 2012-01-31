@@ -71,6 +71,9 @@ def option_boxes():
     checkboxes = ''
     if mldown_path != '':
         checkboxes += checkbox('mldown', 'Format with <a href="http://gitorious.org/mldown">mldown</a>')
+    checkboxes += checkbox('ln', 'Line numbers')
+    checkboxes += checkbox('raw', 'Raw paste')
+    checkboxes += '<br />'
     return checkboxes
 
 def language_box():
@@ -203,7 +206,11 @@ class MainHandler(tornado.web.RequestHandler):
                                           user))
             if user:
                 options = '%s/%s' % (user, options)
-            if '&mldown' in self.request.body:
+            if 'raw' in self.request.arguments:
+                options += '&raw'
+            if 'ln' in self.request.arguments:
+                options += '&ln'
+            if 'mldown' in self.request.arguments:
                 options += '&mldown'
             elif self.get_argument('hl', False):
                 options += '&hl=' + self.get_argument('hl').encode('utf-8')
