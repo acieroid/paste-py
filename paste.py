@@ -174,6 +174,9 @@ class MainHandler(tornado.web.RequestHandler):
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(paste_content)
                 return
+            elif '&mldown' in self.request.uri:
+                self.write(format_mldown(paste_content))
+                return
             elif self.get_argument('hl', False):
                 try:
                     if '&ln' in self.request.uri:
