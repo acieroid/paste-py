@@ -9,12 +9,13 @@ from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_l
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
-from pickle import dump, load
 from string import ascii_letters, digits
 from random import choice
 from os.path import isfile, dirname, basename, exists
 from os import mkdir, listdir
 from subprocess import Popen, PIPE
+from pickle import dump, load
+from re import match
 
 ### Options
 title = 'Paste it §'
@@ -153,7 +154,8 @@ def read_paste(filename):
 def pastes_for_user(user):
     pastes = []
     for filename in listdir(user_dir(user)):
-        if isfile(user_dir(user) + '/' + filename):
+        if (not match(r'.*\.meta', filename) and 
+            isfile(user_dir(user) + '/' + filename)):
             pastes.append(filename)
     return pastes
 
@@ -171,6 +173,8 @@ def dump_meta(user, paste, meta):
 
 def read_meta(user, paste):
     filename = meta_dir(user, paste)
+    if not isfile(filename):
+        return {}
     with open(filename, 'r') as f:
         return load(f)
 
@@ -234,7 +238,8 @@ class MainHandler(tornado.web.RequestHandler):
             paste = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
                                         user))
             options = paste
-            meta = {'hl': '', 'comment': ''}
+            meta = {'hl': '', 
+                    'comment': escape(self.get_argument('comment', '').encode('utf-8'))}
             if user:
                 options = '%s/%s' % (user, options)
             if 'raw' in self.request.arguments:
@@ -268,8 +273,12 @@ class MainHandler(tornado.web.RequestHandler):
             body += '<h2>Pastes for %s</h2>' % user
             body += '<ul>'
             for paste in pastes:
-                body += ('<li><a href="' + base_url + user + '/' +
-                         paste + '">' + paste + '</a></li>')
+                meta = read_meta(user, paste)
+                body += ('<li><a href="%s%s/%s">%s</a>' % 
+                         (base_url, user, paste, paste))
+                if 'comment' in meta and meta['comment'] != '':
+                    body += ': %s' % meta['comment']
+                body += '</li>'
             body += '</ul>'
         else:
             html_pre += ('<h1>%s <span style="font-size: 12px">%s</span></h1>' %
