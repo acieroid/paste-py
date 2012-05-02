@@ -65,7 +65,17 @@ spécifier l'user en troisième argument (le second argument étant le
 langage), ou bien même mettre un user par défaut en dur dans le
 script. Le script peut aussi utiliser =xclip= ou =xsel= pour /copier/
 l'url de ton paste dans ton presse-papier. Bref pour ça, tu ouvre le
-=paste.sh= avec ton éditeur favori et tu regarde les premières lignes.
+=paste.sh= avec ton éditeur favori et tu regarde les premières
+lignes. N'oublies pas d'aller mettre ton =paste.sh= dans =~/bin= ou
+tout autre dossier contenant tes éxécutables personnels favoris.
+
+
+Aussi, si tu souhaites paster quelque chose depuis =stdin=, utilise
+=-= comme argument à =paste.sh=, par exemple:
+#+BEGIN_SRC shell
+uname -a | paste.sh -
+#+END_SRC
+
 ** CSS
 Plusieurs CSS sont disponibles pour faire plaisirs à ceux qui
 préfèrent un design clair ou plus sombre:
@@ -214,4 +224,13 @@ jour pygments sur le serveur où tourne paste.
 Pour me contacter, tu =/query acieroid= sur epiknet ou freenode, tu
 m'hl sur un chan quelconque où je suis, ou tu m'envoie un mail à
 =acieroid@awesom.eu=.
-
+* Historique
+  - 25 Août 2011: Écriture de ce document et ajouts de NougatRillettes
+  - 30 Janvier 2012: Ajout d'autres CSS
+  - 2 Mai 2012: Suite à la fermeture de paste.pocoo.org, quelques
+    ajouts sont faits:
+    - =paste.sh= accepte =-= comme argument pour lire depuis =stdin=
+    - ajout d'un CSS qui décale le texte du bord pour faire plaisirs
+      au gens qui le trouvent trop collé au bord gauche
+    - ajout des fichiers =.meta= stockant le langage ainsi qu'un
+      commentaire à propos du paste
