@@ -9,6 +9,7 @@ from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_l
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
+from pickle import dump, load
 from string import ascii_letters, digits
 from random import choice
 from os.path import isfile, dirname, basename, exists
@@ -73,7 +74,7 @@ def option_boxes():
         checkboxes += checkbox('mldown', 'Format with <a href="http://gitorious.org/mldown">mldown</a>')
     checkboxes += checkbox('ln', 'Line numbers')
     checkboxes += checkbox('raw', 'Raw paste')
-    checkboxes += '<br />'
+    checkboxes += '<br/>'
     return checkboxes
 
 def language_box():
@@ -85,8 +86,13 @@ def language_box():
     return res
 
 def name_field():
-    res = '<label for="user">User (optional):</label><br />'
-    res += '<input type="text" name="user" id="user" />'
+    res = '<label for="user">User (optional):</label><br/>'
+    res += '<input type="text" name="user" id="user"/><br/>'
+    return res
+
+def comment_field():
+    res = '<label for="comment">Comment (optional):</label><br/>'
+    res += '<input type="text" name="comment" id="comment"/>'
     return res
 
 def paste_form():
@@ -96,7 +102,8 @@ def paste_form():
     res += language_box()
     res += option_boxes()
     res += name_field()
-    res += '<input type="submit" value="Paste" />'
+    res += comment_field()
+    res += '<input type="submit" value="Paste"/>'
     res += '</form>'
     return res
 
@@ -150,6 +157,24 @@ def pastes_for_user(user):
             pastes.append(filename)
     return pastes
 
+## Meta informations
+def meta_dir(user, paste):
+    if user:
+        return ("%s/%s.meta" % (user_dir(user), paste))
+    else:
+        return ("%s/%s.meta" % (filename_path, paste))
+
+def dump_meta(user, paste, meta):
+    filename = meta_dir(user, paste)
+    with open(filename, 'w') as f:
+        dump(meta, f)
+
+def read_meta(user, paste):
+    filename = meta_dir(user, paste)
+    with open(filename, 'r') as f:
+        return load(f)
+
+### App
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -157,19 +182,20 @@ class MainHandler(tornado.web.RequestHandler):
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
   <title>''' + title + '''</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="stylesheet" type="text/css" href="/paste.css" title="Clear" />
-  <link rel="stylesheet" type="text/css" href="/paste-margin.css" title="Clear with margin" />
-  <link rel="alternate stylesheet" type="text/css" href="/dark.css" title="Dark" />
-  <link rel="alternate stylesheet" type="text/css" href="/dark2.css" title="Alternative dark" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="/paste.css" title="Clear"/>
+  <link rel="stylesheet" type="text/css" href="/paste-margin.css" title="Clear with margin"/>
+  <link rel="alternate stylesheet" type="text/css" href="/dark.css" title="Dark"/>
+  <link rel="alternate stylesheet" type="text/css" href="/dark2.css" title="Alternative dark"/>
 </head>
 <body>'''
         html_post = ''
         paste_content = ''
         body = ''
         if self.get_argument('id', False):
-            paste_content = read_paste(filename_path + '/' +
-                                       self.get_argument('id').encode('utf-8'))
+            paste = self.get_argument('id').encode('utf-8')
+            paste_content = read_paste(filename_path + '/' + paste)
+            meta = read_meta(None, paste)
             if '&raw' in self.request.uri:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(paste_content)
@@ -177,15 +203,14 @@ class MainHandler(tornado.web.RequestHandler):
             elif '&mldown' in self.request.uri:
                 self.write(format_mldown(paste_content))
                 return
-            elif self.get_argument('hl', False):
+            elif self.get_argument('hl', False) or 'hl' in meta:
                 try:
+                    hl = self.get_argument('hl', False) or meta['hl']
                     if '&ln' in self.request.uri:
-                        paste_content = highlight_code(paste_content,
-                                                       self.get_argument('hl'),
+                        paste_content = highlight_code(paste_content, hl,
                                                        linenos_type)
                     else:
-                        paste_content = highlight_code(paste_content,
-                                                       self.get_argument('hl'))
+                        paste_content = highlight_code(paste_content, hl)
                 except ClassNotFound:
                     paste_content = escape(paste_content)
                     html_pre += '<pre>'
@@ -206,8 +231,10 @@ class MainHandler(tornado.web.RequestHandler):
             if not valid_username(user):
                 raise tornado.web.HTTPError(404)
 
-            options = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
-                                          user))
+            paste = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
+                                        user))
+            options = paste
+            meta = {'hl': '', 'comment': ''}
             if user:
                 options = '%s/%s' % (user, options)
             if 'raw' in self.request.arguments:
@@ -217,12 +244,16 @@ class MainHandler(tornado.web.RequestHandler):
             if 'mldown' in self.request.arguments:
                 options += '&mldown'
             elif self.get_argument('hl', False):
-                options += '&hl=' + self.get_argument('hl').encode('utf-8')
+                hl = self.get_argument('hl').encode('utf-8')
+                # options += '&hl=' + hl # Not needed anymore because of meta
+                meta['hl'] = hl
             elif self.get_argument('ext', False):
                 hl = lang_from_ext(self.get_argument('ext').encode('utf-8'))
                 if hl != '':
-                    options += '&hl=' + hl
+                    # options += '&hl=' + hl
+                    meta['hl'] = hl
 
+            dump_meta(user, paste, meta)
             if '&script' in self.request.body:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
