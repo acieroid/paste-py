@@ -159,6 +159,7 @@ class MainHandler(tornado.web.RequestHandler):
   <title>''' + title + '''</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="/paste.css" title="Clear" />
+  <link rel="stylesheet" type="text/css" href="/paste-margin.css" title="Clear with margin" />
   <link rel="alternate stylesheet" type="text/css" href="/dark.css" title="Dark" />
   <link rel="alternate stylesheet" type="text/css" href="/dark2.css" title="Alternative dark" />
 </head>
@@ -253,11 +254,7 @@ class MainHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/(paste\.css)", tornado.web.StaticFileHandler,
-     dict(path=dirname(__file__))),
-    (r"/(dark\.css)", tornado.web.StaticFileHandler,
-     dict(path=dirname(__file__))),
-    (r"/(dark2\.css)", tornado.web.StaticFileHandler,
+    (r"/([a-z0-9\-]+\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
 ])
 
