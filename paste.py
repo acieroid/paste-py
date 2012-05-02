@@ -224,8 +224,8 @@ class MainHandler(tornado.web.RequestHandler):
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
                 return
-            body = ('Your paste is located <a href="' + base_url +
-                    options + '">here</a>')
+            self.redirect(base_url + options);
+            return
         elif self.get_argument('user', False):
             user = escape(self.get_argument('user', '').encode('utf-8'))
             if not valid_username(user):
