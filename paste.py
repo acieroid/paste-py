@@ -131,15 +131,15 @@ def new_path(user):
 
 def dump_paste(content, user):
     filename = new_path(user)
-    f = open(filename, 'w')
-    f.write(content)
-    f.close()
+    with open(filename, 'w') as f:
+        f.write(content)
     return filename
 
+## Users
 def read_paste(filename):
     try:
-        f = open(filename, 'r')
-        return f.read()
+        with open(filename, 'r') as f:
+            return f.read()
     except IOError:
       raise tornado.web.HTTPError(404)
 
