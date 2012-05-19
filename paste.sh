@@ -17,7 +17,7 @@ else
     fi
 fi
 
-if [ -e "$1" -o "$1" == "-" ] ; then
+if [ -e "$1" -o "$1" = "-" ] ; then
     FILE="$1"
 else
     echo "Usage: $0 [file|-] [lang] [user]"
