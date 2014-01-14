@@ -21,7 +21,7 @@ from re import match
 title = 'Paste it §'
 doc = '(<a href="https://github.com/acieroid/paste-py/">doc</a>|<a href="https://raw.github.com/acieroid/paste-py/master/paste.sh">script</a>)'
 filename_path = 'pastes'
-filename_length = 3
+filename_length = 4
 filename_characters = ascii_letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
@@ -34,6 +34,8 @@ def valid_username(username):
 
 ### Highlight & format
 def highlight_code(code, lang, linenos=''):
+    if lang == '':
+        lang = 'text'
     res = highlight(code, get_lexer_by_name(lang),
                     HtmlFormatter(linenos=linenos))
     # weird but it works
@@ -218,20 +220,17 @@ def view_paste(paste, args, handler):
             hl = ('hl' in args and args['hl']) or meta['hl']
             if 'ln' in args:
                 paste_content = highlight_code(paste_content, hl,
-                                                       linenos_type)
+                                               linenos_type)
             else:
                 paste_content = highlight_code(paste_content, hl)
-        except ClassNotFound:
+        except ClassNotFound as e:
             paste_content = escape(paste_content)
             pre += '<pre>'
             post += '</pre>'
     else:
         if 'ln' in args:
-            # TODO: line numbers not aligned with 'table', so
-            # we must use 'inline' (but there's no problem if
-            # the code is highlighted)
             paste_content = highlight_code(paste_content,
-                                           'text', 'inline')
+                                           'text', linenos_type)
         else:
             paste_content = escape(paste_content)
             pre += '<pre>'
@@ -313,7 +312,7 @@ class MainHandler(tornado.web.RequestHandler):
         if self.get_argument('id', False):
             view_paste(self.get_argument('id').encode('utf-8'), args, self)
         elif self.get_argument('paste', False):
-            args = self.request.arguments # TODO: encode to utf-8
+            args = {k: v[0].encode('utf-8') for k, v in self.request.arguments.items()}
             add_paste(self.get_argument('user', '').encode('utf-8'),
                       self.get_argument('paste').encode('utf-8'),
                       self.get_argument('comment', '').encode('utf-8'),
@@ -344,7 +343,7 @@ class UserRawHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/([a-zA-Z0-9]+)((&[a-z]+)*)", ViewHandler),
+    (r"/([a-zA-Z0-9]+)((&[^&]+)*)", ViewHandler),
     (r"/user/(.*)", UserHandler),
     (r"/raw/([a-zA-Z0-9]+)", RawHandler),
     (r"/raw/([^/]+)/([a-zA-Z0-9]+)", UserRawHandler),
