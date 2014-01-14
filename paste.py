@@ -19,17 +19,15 @@ from re import match
 
 ### Options
 title = 'Paste it §'
-doc = '(<a href="http://awesom.eu/~acieroid/articles/paste.html">doc</a>)'
+doc = '(<a href="https://github.com/acieroid/paste-py/">doc</a>|<a href="https://raw.github.com/acieroid/paste-py/master/paste.sh">script</a>)'
 filename_path = 'pastes'
 filename_length = 3
 filename_characters = ascii_letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
-linenos_type = 'table' # 'table', 'inline' or '' (table is  copy-paste friendly)
-production = False
+linenos_type = 'table' # 'table', 'inline' or '' (table is copy-paste friendly)
 base_url = '/'
-if not production:
-    base_url += '?id='
+production = False
 
 def valid_username(username):
     return not ('/' in username)
@@ -195,6 +193,8 @@ html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 </head>
 <body>'''
 
+html_post = '</body></html>'
+
 def extract_args(uri):
     uri = uri.encode('utf-8')
     content = map(lambda s: s.split('='), uri.split('&')[1:])
@@ -236,7 +236,7 @@ def view_paste(paste, args, handler):
             paste_content = escape(paste_content)
             pre += '<pre>'
             post += '</pre>'
-    post += '</body></html>'
+    post += html_post
     handler.content_type = 'text/html'
     handler.write(pre)
     handler.write(paste_content)
@@ -252,19 +252,20 @@ def add_paste(user, content, comment, args, handler):
     if user:
         options = '%s/%s' % (user, options)
     if 'raw' in args:
-        options += '&raw'
-    if 'ln' in args:
-        options += '&ln'
-    if 'mldown' in args:
-        options += '&mldown'
-    elif 'hl' in args:
-        hl = args['hl']
-        meta['hl'] = hl
-    elif 'ext' in args:
-        hl = lang_from_ext(args['ext'])
-        if hl != '':
-            # options += '&hl=' + hl
+        options = 'raw/' + options
+    else:
+        if 'ln' in args:
+            options += '&ln'
+        if 'mldown' in args:
+            options += '&mldown'
+        elif 'hl' in args:
+            hl = args['hl']
             meta['hl'] = hl
+        elif 'ext' in args:
+            hl = lang_from_ext(args['ext'])
+            if hl != '':
+                # options += '&hl=' + hl
+                meta['hl'] = hl
 
     dump_meta(user, paste, meta)
     if 'script' in args:
@@ -273,6 +274,7 @@ def add_paste(user, content, comment, args, handler):
         return
     handler.redirect(base_url + options);
 
+
 def view_index(handler):
     body = paste_form()
     handler.content_type = 'text/html'
@@ -280,14 +282,14 @@ def view_index(handler):
     handler.write('<h1>%s <span style="font-size: 12px">%s</span></h1>' %
                   (title, doc))
     handler.write(body)
-    handler.write('</body></html>')
+    handler.write(html_post)
 
 def view_user(user, handler):
     user = escape(user)
     if not valid_username(user):
         raise tornado.web.HTTPError(404)
     pastes = pastes_for_user(user)
-    body += '<h2>Pastes for %s</h2>' % user
+    body = '<h2>Pastes for %s</h2>' % user
     if pastes == []:
         body += '<p>No paste for this user</p>'
     else:
@@ -323,8 +325,29 @@ class MainHandler(tornado.web.RequestHandler):
     def post(self):
         self.get()
 
+class ViewHandler(tornado.web.RequestHandler):
+    def get(self, name, args, last):
+        view_paste(name.encode('utf-8'), extract_args(args), self)
+
+class UserHandler(tornado.web.RequestHandler):
+    def get(self, user):
+        view_user(user, self)
+
+class RawHandler(tornado.web.RequestHandler):
+    def get(self, name):
+        view_paste(name.encode('utf-8'), {'raw': ''}, self)
+
+class UserRawHandler(tornado.web.RequestHandler):
+    def get(self, user, name):
+        view_paste(name.encode('utf-8'), {'raw': '',
+                                          'user': user.encode('utf-8')}, self)
+
 application = tornado.web.Application([
     (r"/", MainHandler),
+    (r"/([a-zA-Z0-9]+)((&[a-z]+)*)", ViewHandler),
+    (r"/user/(.*)", UserHandler),
+    (r"/raw/([a-zA-Z0-9]+)", RawHandler),
+    (r"/raw/([^/]+)/([a-zA-Z0-9]+)", UserRawHandler),
     (r"/([a-zA-Z0-9\-]+\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
 ])
