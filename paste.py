@@ -328,6 +328,11 @@ class ViewHandler(tornado.web.RequestHandler):
     def get(self, name, args, last):
         view_paste(name.encode('utf-8'), extract_args(args), self)
 
+class UserViewHandler(tornado.web.RequestHandler):
+    def get(self, user, name, args, last):
+        paste = user.encode('utf-8') + '/' + name.encode('utf-8')
+        view_paste(paste, extract_args(args), self)
+
 class UserHandler(tornado.web.RequestHandler):
     def get(self, user):
         view_user(user, self)
@@ -343,10 +348,11 @@ class UserRawHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/([a-zA-Z0-9]+)((&[^&]+)*)", ViewHandler),
     (r"/user/(.*)", UserHandler),
     (r"/raw/([a-zA-Z0-9]+)", RawHandler),
     (r"/raw/([^/]+)/([a-zA-Z0-9]+)", UserRawHandler),
+    (r"/([a-zA-Z0-9]+)((&[^&]+)*)", ViewHandler),
+    (r"/([^/]+)/([a-zA-Z0-9]+)((&[^&]+)*)", UserViewHandler),
     (r"/([a-zA-Z0-9\-]+\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
 ])
