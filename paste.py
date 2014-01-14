@@ -274,7 +274,6 @@ def add_paste(user, content, comment, args, handler):
         return
     handler.redirect(base_url + options);
 
-
 def view_index(handler):
     body = paste_form()
     handler.content_type = 'text/html'
@@ -314,6 +313,7 @@ class MainHandler(tornado.web.RequestHandler):
         if self.get_argument('id', False):
             view_paste(self.get_argument('id').encode('utf-8'), args, self)
         elif self.get_argument('paste', False):
+            args = self.request.arguments # TODO: encode to utf-8
             add_paste(self.get_argument('user', '').encode('utf-8'),
                       self.get_argument('paste').encode('utf-8'),
                       self.get_argument('comment', '').encode('utf-8'),
