@@ -181,10 +181,8 @@ def read_meta(user, paste):
     with open(filename, 'r') as f:
         return load(f)
 
-### App
-class MainHandler(tornado.web.RequestHandler):
-    def get(self):
-        html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+## Logic
+html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
@@ -196,114 +194,138 @@ class MainHandler(tornado.web.RequestHandler):
   <link rel="alternate stylesheet" type="text/css" href="/dark2.css" title="Alternative dark"/>
 </head>
 <body>'''
-        html_post = ''
-        paste_content = ''
-        body = ''
-        if self.get_argument('id', False):
-            paste = self.get_argument('id').encode('utf-8')
-            paste_content = read_paste(filename_path + '/' + paste)
-            meta = read_meta(None, paste)
-            if '&raw' in self.request.uri:
-                self.set_header("Content-Type", "text/plain; charset=utf-8")
-                self.write(paste_content)
-                return
-            elif '&mldown' in self.request.uri:
-                self.write(format_mldown(paste_content))
-                return
-            elif self.get_argument('hl', False) or 'hl' in meta:
-                try:
-                    hl = self.get_argument('hl', False) or meta['hl']
-                    if '&ln' in self.request.uri:
-                        paste_content = highlight_code(paste_content, hl,
+
+def extract_args(uri):
+    uri = uri.encode('utf-8')
+    content = map(lambda s: s.split('='), uri.split('&')[1:])
+    content = map(lambda v: len(v) != 2 and [v[0], ''] or v, content)
+    return dict(content)
+
+def view_paste(paste, args, handler):
+    pre = html_pre
+    post = ''
+    paste_content = read_paste(filename_path + '/' + paste)
+    meta = read_meta(None, paste)
+    if 'raw' in args:
+        handler.set_header("Content-Type", "text/plain; charset=utf-8")
+        handler.write(paste_content)
+        return
+    elif 'mldown' in args:
+        handler.write(format_mldown(paste_content))
+        return
+    elif 'hl' in args or 'hl' in meta:
+        try:
+            hl = ('hl' in args and args['hl']) or meta['hl']
+            if 'ln' in args:
+                paste_content = highlight_code(paste_content, hl,
                                                        linenos_type)
-                    else:
-                        paste_content = highlight_code(paste_content, hl)
-                except ClassNotFound:
-                    paste_content = escape(paste_content)
-                    html_pre += '<pre>'
-                    html_post += '</pre>'
             else:
-                if '&ln' in self.request.uri:
-                    # TODO: line numbers not aligned with 'table', so
-                    # we must use 'inline' (but there's no problem if
-                    # the code is highlighted)
-                    paste_content = highlight_code(paste_content,
-                                                   'text', 'inline')
-                else:
-                    paste_content = escape(paste_content)
-                html_pre += '<pre>'
-                html_post += '</pre>'
-        elif self.get_argument('paste', False):
-            user = escape(self.get_argument('user', '').encode('utf-8'))
-            if not valid_username(user):
-                raise tornado.web.HTTPError(404)
-
-            paste = basename(dump_paste(self.get_argument('paste').encode('utf-8'),
-                                        user))
-            options = paste
-            meta = {'hl': '',
-                    'comment': escape(self.get_argument('comment', '').encode('utf-8'))}
-            if user:
-                options = '%s/%s' % (user, options)
-            if 'raw' in self.request.arguments:
-                options += '&raw'
-            if 'ln' in self.request.arguments:
-                options += '&ln'
-            if 'mldown' in self.request.arguments:
-                options += '&mldown'
-            elif self.get_argument('hl', False):
-                hl = self.get_argument('hl').encode('utf-8')
-                # options += '&hl=' + hl # Not needed anymore because of meta
-                meta['hl'] = hl
-            elif self.get_argument('ext', False):
-                hl = lang_from_ext(self.get_argument('ext').encode('utf-8'))
-                if hl != '':
-                    # options += '&hl=' + hl
-                    meta['hl'] = hl
-
-            dump_meta(user, paste, meta)
-            if '&script' in self.request.body:
-                self.set_header("Content-Type", "text/plain; charset=utf-8")
-                self.write(options)
-                return
-            self.redirect(base_url + options);
-            return
-        elif self.get_argument('user', False):
-            user = escape(self.get_argument('user', '').encode('utf-8'))
-            if not valid_username(user):
-                raise tornado.web.HTTPError(404)
-            pastes = pastes_for_user(user)
-            body += '<h2>Pastes for %s</h2>' % user
-            if pastes == []:
-              body += '<p>No paste for this user</p>'
-            else:
-              body += '<ul>'
-              for paste in pastes:
-                  meta = read_meta(user, paste)
-                  body += ('<li><a href="%s%s/%s">%s</a>' %
-                           (base_url, user, paste, paste))
-                  if 'comment' in meta and meta['comment'] != '':
-                      body += ': %s' % meta['comment']
-                  body += '</li>'
-              body += '</ul>'
+                paste_content = highlight_code(paste_content, hl)
+        except ClassNotFound:
+            paste_content = escape(paste_content)
+            pre += '<pre>'
+            post += '</pre>'
+    else:
+        if 'ln' in args:
+            # TODO: line numbers not aligned with 'table', so
+            # we must use 'inline' (but there's no problem if
+            # the code is highlighted)
+            paste_content = highlight_code(paste_content,
+                                           'text', 'inline')
         else:
-            html_pre += ('<h1>%s <span style="font-size: 12px">%s</span></h1>' %
-                         (title, doc))
-            body = paste_form()
+            paste_content = escape(paste_content)
+            pre += '<pre>'
+            post += '</pre>'
+    post += '</body></html>'
+    handler.content_type = 'text/html'
+    handler.write(pre)
+    handler.write(paste_content)
+    handler.write(post)
 
-        html_post += '</body></html>'
-        self.content_type = 'text/html'
-        self.write(html_pre)
-        self.write(body) # either body or paste_content is non-null
-        self.write(paste_content)
-        self.write(html_post)
+def add_paste(user, content, comment, args, handler):
+    if not valid_username(user):
+        raise tornado.web.HTTPError(404)
+
+    paste = basename(dump_paste(content, user))
+    options = paste
+    meta = {'hl': '', 'comment': escape(comment)}
+    if user:
+        options = '%s/%s' % (user, options)
+    if 'raw' in args:
+        options += '&raw'
+    if 'ln' in args:
+        options += '&ln'
+    if 'mldown' in args:
+        options += '&mldown'
+    elif 'hl' in args:
+        hl = args['hl']
+        meta['hl'] = hl
+    elif 'ext' in args:
+        hl = lang_from_ext(args['ext'])
+        if hl != '':
+            # options += '&hl=' + hl
+            meta['hl'] = hl
+
+    dump_meta(user, paste, meta)
+    if 'script' in args:
+        handler.set_header("Content-Type", "text/plain; charset=utf-8")
+        handler.write(options)
+        return
+    handler.redirect(base_url + options);
+
+def view_index(handler):
+    body = paste_form()
+    handler.content_type = 'text/html'
+    handler.write(html_pre)
+    handler.write('<h1>%s <span style="font-size: 12px">%s</span></h1>' %
+                  (title, doc))
+    handler.write(body)
+    handler.write('</body></html>')
+
+def view_user(user, handler):
+    user = escape(user)
+    if not valid_username(user):
+        raise tornado.web.HTTPError(404)
+    pastes = pastes_for_user(user)
+    body += '<h2>Pastes for %s</h2>' % user
+    if pastes == []:
+        body += '<p>No paste for this user</p>'
+    else:
+        body += '<ul>'
+    for paste in pastes:
+        meta = read_meta(user, paste)
+        body += ('<li><a href="%s%s/%s">%s</a>' %
+                 (base_url, user, paste, paste))
+        if 'comment' in meta and meta['comment'] != '':
+            body += ': %s' % meta['comment']
+        body += '</li>'
+    body += '</ul>'
+    handler.content_type = 'text/html'
+    handler.write(html_pre)
+    handler.write(body)
+    handler.write(html_post)
+
+### App
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        args = extract_args(self.request.uri)
+        if self.get_argument('id', False):
+            view_paste(self.get_argument('id').encode('utf-8'), args, self)
+        elif self.get_argument('paste', False):
+            add_paste(self.get_argument('user', '').encode('utf-8'),
+                      self.get_argument('paste').encode('utf-8'),
+                      self.get_argument('comment', '').encode('utf-8'),
+                      args, self)
+        elif self.get_argument('user', False):
+            view_user(self.get_argument('user', '').encode('utf-8'), self)
+        else:
+            view_index(self)
     def post(self):
         self.get()
 
-
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/([a-z0-9\-]+\.css)", tornado.web.StaticFileHandler,
+    (r"/([a-zA-Z0-9\-]+\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
 ])
 
