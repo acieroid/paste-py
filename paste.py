@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import tornado.ioloop
 import tornado.web
+from tornado.httpserver import HTTPServer
+from tornado.netutil import bind_unix_socket
 from tornado.escape import xhtml_escape as escape
+from tornado.options import options, define, parse_command_line
 
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_lexers
@@ -16,6 +19,7 @@ from os import mkdir, listdir
 from subprocess import Popen, PIPE
 from pickle import dump, load
 from re import match
+from sys import argv
 
 ### Options
 title = 'Paste it §'
@@ -358,10 +362,24 @@ application = tornado.web.Application([
     # with the other routes
     (r"/([^&]+)((&[^&]+)*)", ViewHandler),
     (r"/([^/]+)/([^&]+)((&[^&]+)*)", UserViewHandler),
-
 ])
 
-if __name__ == "__main__":
-    application.listen(8888)
+define('addr', group='webserver', default='127.0.0.1',
+       help='Address on which to listen')
+define('port', group='webserver', default=8888,
+       help='Port on which to listen')
+define('socket', group='webserver', default=None,
+       help='Unix socket file on which to listen')
+
+if __name__ == '__main__':
+    parse_command_line()
+    if options.socket:
+        print('Listening on {}'.format(options.socket))
+        server = HTTPServer(application)
+        socket = bind_unix_socket(options.socket)
+        server.add_socket(socket)
+    else:
+        print('Listening on {}:{}'.format(options.addr, options.port))
+        application.listen(options.port, address=options.addr)
     application.debug = not production
     tornado.ioloop.IOLoop.instance().start()
