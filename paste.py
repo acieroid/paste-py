@@ -352,7 +352,7 @@ class UserRawHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/user/([^/]+)", UserHandler),
+    (r"/user/([^/]+)/?", UserHandler),
     (r"/raw/([^&]+)", RawHandler),
     (r"/raw/([^/]+)/([^&]+)", UserRawHandler),
     (r"/([a-zA-Z0-9\-]+\.css)", tornado.web.StaticFileHandler,
