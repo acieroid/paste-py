@@ -169,9 +169,9 @@ def pastes_for_user(user):
 ## Meta informations
 def meta_dir(user, paste):
     if user:
-        return ("%s/%s.meta" % (user_dir(user), paste))
+        return ('%s/%s.meta' % (user_dir(user), paste))
     else:
-        return ("%s/%s.meta" % (filename_path, paste))
+        return ('%s/%s.meta' % (filename_path, paste))
 
 def dump_meta(user, paste, meta):
     filename = meta_dir(user, paste)
@@ -213,7 +213,7 @@ def view_paste(paste, args, handler):
     paste_content = read_paste(filename_path + '/' + paste)
     meta = read_meta(None, paste)
     if 'raw' in args:
-        handler.set_header("Content-Type", "text/plain; charset=utf-8")
+        handler.set_header('Content-Type', 'text/plain; charset=utf-8')
         handler.write(paste_content)
         return
     elif 'mldown' in args:
@@ -272,7 +272,7 @@ def add_paste(user, content, comment, args, handler):
 
     dump_meta(user, paste, meta)
     if 'script' in args:
-        handler.set_header("Content-Type", "text/plain; charset=utf-8")
+        handler.set_header('Content-Type', 'text/plain; charset=utf-8')
         handler.write(options)
         return
     handler.redirect(base_url + options);
