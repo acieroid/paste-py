@@ -371,7 +371,7 @@ define('port', group='webserver', default=8888,
 define('socket', group='webserver', default=None,
        help='Unix socket file on which to listen')
 
-if __name__ == '__main__':
+def run():
     parse_command_line()
     if options.socket:
         print('Listening on {}'.format(options.socket))
@@ -383,3 +383,6 @@ if __name__ == '__main__':
         application.listen(options.port, address=options.addr)
     application.debug = not production
     tornado.ioloop.IOLoop.instance().start()
+
+if __name__ == '__main__':
+    run()
