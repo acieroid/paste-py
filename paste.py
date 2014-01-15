@@ -312,7 +312,8 @@ class MainHandler(tornado.web.RequestHandler):
         if self.get_argument('id', False):
             view_paste(self.get_argument('id').encode('utf-8'), args, self)
         elif self.get_argument('paste', False):
-            args = {k: v[0].encode('utf-8') for k, v in self.request.arguments.items()}
+            args = {k: v[0].decode('utf-8') # python and utf-8, wtf.
+                    for k, v in self.request.arguments.items()}
             add_paste(self.get_argument('user', '').encode('utf-8'),
                       self.get_argument('paste').encode('utf-8'),
                       self.get_argument('comment', '').encode('utf-8'),
