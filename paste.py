@@ -348,13 +348,16 @@ class UserRawHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/", MainHandler),
-    (r"/user/(.*)", UserHandler),
-    (r"/raw/([a-zA-Z0-9]+)", RawHandler),
-    (r"/raw/([^/]+)/([a-zA-Z0-9]+)", UserRawHandler),
-    (r"/([a-zA-Z0-9]+)((&[^&]+)*)", ViewHandler),
-    (r"/([^/]+)/([a-zA-Z0-9]+)((&[^&]+)*)", UserViewHandler),
+    (r"/user/([^/]+)", UserHandler),
+    (r"/raw/([^&]+)", RawHandler),
+    (r"/raw/([^/]+)/([^&]+)", UserRawHandler),
     (r"/([a-zA-Z0-9\-]+\.css)", tornado.web.StaticFileHandler,
      dict(path=dirname(__file__))),
+    # Those two routes should stay in last position to avoid conflicts
+    # with the other routes
+    (r"/([^&]+)((&[^&]+)*)", ViewHandler),
+    (r"/([^/]+)/([^&]+)((&[^&]+)*)", UserViewHandler),
+
 ])
 
 if __name__ == "__main__":
