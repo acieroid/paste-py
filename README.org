@@ -38,7 +38,11 @@ Et voilà.
 Si jamais l'envie te viens de vouloir télécharger un paste (avec
 =wget=, =fetch=, =curl=, ...), prends soin d'ajouter le paramètre
 =&raw= à l'url, pour obtenir le contenu du paste uniquement, et pas
-toute la page bourrée d'html au milieu du paste.
+toute la page bourrée d'html au milieu du paste. Bonus: si tu veux une
+url compatible avec ton shell, tu peux remplacer
+=http://paste.awesom.eu/HiT&raw= par
+=http://paste.awesom.eu/raw/HiT=. C'est d'ailleurs ce qui est fait
+quand tu coche la case /raw/ en pastant.
 ** Numéros de ligne
 Pour avoir de magnifiques numéros à côté de chaque ligne, il te suffit
 d'ajouter le paramètre =&ln= dans l'url.
@@ -69,7 +73,6 @@ l'url de ton paste dans ton presse-papier. Bref pour ça, tu ouvre le
 lignes. N'oublies pas d'aller mettre ton =paste.sh= dans =~/bin= ou
 tout autre dossier contenant tes éxécutables personnels favoris.
 
-
 Aussi, si tu souhaites paster quelque chose depuis =stdin=, utilise
 =-= comme argument à =paste.sh=, par exemple:
 #+BEGIN_SRC shell
@@ -80,7 +83,7 @@ uname -a | paste.sh -
 Plusieurs CSS sont disponibles pour faire plaisirs à ceux qui
 préfèrent un design clair ou plus sombre:
   - Un thème clair par défaut repris du site de [[http://pygments.org/][Pygments]]
-  - Un thème sombre repris de [[http://the-lambda-church.org/][The Lambda Church]]
+  - Un thème sombre repris du défunt [[http://tlc.awesom.eu/][The Lambda Church]]
   - Un autre thème sombre repris du site du [[http://progmod.org/][Programmeur Moderne]]
 
 Ton navigateur devrait te permettre de choisir l'un ou l'autre style
@@ -101,10 +104,10 @@ très simple. Au niveau des dépendances, tu as besoin de:
 
 Tu peux installer ça via le gestionnaire de paquet de ta
 distribution ou si tu as les [[http://pypi.python.org/pypi/setuptools][setuptools]] de python d'installé, via
-=easy_install=:
+=pip=:
 
 #+BEGIN_SRC shell
-easy_install tornado pygments
+pip install tornado pygments
 #+END_SRC
 
 Ensuite, récupère les sources de paste-py depuis [[https://github.com/acieroid/paste-py][le git]] (ou télécharge
@@ -113,56 +116,23 @@ une snapshot du dépôt):
 git clone git://github.com/acieroid/paste-py.git
 #+END_SRC
 
-Et pour lancer (ça listen sur le port 8888):
+Et pour lancer (ça listen sur le port 8888 par défaut, tu peux changer
+ça, regarde =--help=):
 
 #+BEGIN_SRC shell
 mkdir pastes/
 python paste.py
 #+END_SRC
 
-Si tu veux des « jolies » URL comme sur [[http://paste.awesom.eu]], il
-faut que tu mettes la variable =production= à =True= dans =paste.py=,
-et que tu aies un serveur web qui rewrite certaines choses. Dans mon
-cas, c'est [[http://nginx.net/][du russe]], et la configuration (=nginx.conf=) ressemble à
-ça:
-
-#+BEGIN_SRC text
-server {
-    server_name paste.awesom.eu;
-    access_log  /var/log/nginx/paste.awesom.eu-access_log;
-    error_log   /var/log/nginx/paste.awesom.eu-error_log;
-    location ~ ^(.*)/paste.css {
-        root /usr/home/paste/paste-py/;
-    }   
-    location ~ ^(.*)/favicon.ico {
-        root /usr/home/paste/paste-py/;
-    }   
-    location / { 
-        rewrite ^/$ / break;
-        rewrite ^/user/([^/]+)$ /?user=$1 break;
-        rewrite ^/user/([^/]+)/([^&]+)?&(.*)$ /?id=$1/$2&$3 break;
-        rewrite ^/([^&]+)&(.*)$ /?id=$1&$2 break;
-        rewrite ^/(.*)$ /?id=$1 break;
-
-        proxy_pass http://localhost:8888;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For
-        $proxy_add_x_forwarded_for;
-    }
-}
-#+END_SRC
-
 Et tu peux même utiliser le script =daemonize.py= (mais il faudra
 sûrement l'adapter au niveau des chemins) si tu veux lancer =paste.py=
-en daemon.
+en daemon. Il dépend de =grizzled= (que tu installera facilement avec
+pip).
 * Fonctionnement
 Le fonctionnement de paste est très simple: lorsqu'un nouveau paste
-est soumis, on génère un nom aléatoire (ici de trois lettres/chiffres,
-ce qui est largement suffisant: 238328 noms disponibles, alors qu'on
-est en dessous des 3000 pastes au total aujourd'hui) et on écrit le
-paste dans le fichier portant ce nom. Ainsi pour retrouver un paste
-c'est très simple, on lit le fichier correspondant au nom du paste
+est soumis, on génère un nom aléatoire et on écrit le paste dans le
+fichier portant ce nom. Ainsi pour retrouver un paste c'est très
+simple, on lit le fichier correspondant au nom du paste
 demandé. Ainsi, pas besoin de base de donnée ou de mécanisme
 compliqué.
 
@@ -222,12 +192,14 @@ se plaindre. Si par contre c'est supporté, [[Contact][ping]] moi et je mettrais
 jour pygments sur le serveur où tourne paste.
 * Contact
 Pour me contacter, tu =/query acieroid= sur epiknet ou freenode, tu
-m'hl sur un chan quelconque où je suis, ou tu m'envoie un mail à
-=acieroid@awesom.eu=.
+m'hl sur un chan quelconque où je suis, tu m'envoies un mail à
+=acieroid@awesom.eu=, ou bien t'ouvres une issue sur le [[http://github.com/acieroid/paste-py][github]] comme
+un grand.
 * Historique
-  - 25 Août 2011: Écriture de ce document et ajouts de NougatRillettes
-  - 30 Janvier 2012: Ajout d'autres CSS
-  - 2 Mai 2012: Suite à la fermeture de paste.pocoo.org, quelques
+  - 15 Janvier 2014: mise à jour et traduction en anglais
+  - 25 Août 2011: écriture de ce document et ajouts de NougatRillettes
+  - 30 Janvier 2012: ajout d'autres CSS
+  - 2 Mai 2012: suite à la fermeture de paste.pocoo.org, quelques
     ajouts sont faits:
     - =paste.sh= accepte =-= comme argument pour lire depuis =stdin=
     - ajout d'un CSS qui décale le texte du bord pour faire plaisirs
