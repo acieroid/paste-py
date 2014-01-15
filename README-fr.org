@@ -1,0 +1,208 @@
+#+LINK_HOME: index.html
+#+EMAIL:
+paste-py - La documentation
+
+Tu as toujours tout voulu savoir sur comment utiliser [[http://paste.awesom.eu][paste]] ? Tu t'es
+toujours dit qu'un script pour paster directement depuis la ligne de
+commande serait utile ? Ou qu'un accès en « raw » serait pratique pour
+pouvoir télécharger directement les paste ? Alors ce document est fait
+pour toi.
+
+* Utilisation
+L'interface web de paste est très simple d'utilisation, mais elle
+contient un bon nombre de /features cachées/, que personne n'a l'air
+de connaître. Après avoir lu cette section, paste n'aura plus aucun
+secret pour toi.
+** Coloration syntaxique
+La coloration syntaxique se choisit très facilement dans l'énorme
+liste sur l'interface web. Si néanmoins tu as oublié de la
+sélectionner, ou que tu t'es trompé, tu peux toujours la changer par
+après. Pour cela tu n'as qu'à ajouter où changer le paramètre =&hl=
+dans l'URL.
+
+Par exemple, si par malheur tu as sélectionné « Python 3.0 Traceback »
+pour un paste en Python, tu te retrouves avec l'URL suivante:
+#+BEGIN_SRC text
+http://paste.awesom.eu/HiT&hl=py3tb
+#+END_SRC
+
+Pour obtenir la bonne coloration syntaxique, tu n'as qu'à changer le
+=py3tb= en =python=:
+
+#+BEGIN_SRC text
+http://paste.awesom.eu/HiT&hl=python
+#+END_SRC
+
+Et voilà.
+** Raw-mode
+Si jamais l'envie te viens de vouloir télécharger un paste (avec
+=wget=, =fetch=, =curl=, ...), prends soin d'ajouter le paramètre
+=&raw= à l'url, pour obtenir le contenu du paste uniquement, et pas
+toute la page bourrée d'html au milieu du paste. Bonus: si tu veux une
+url compatible avec ton shell, tu peux remplacer
+=http://paste.awesom.eu/HiT&raw= par
+=http://paste.awesom.eu/raw/HiT=. C'est d'ailleurs ce qui est fait
+quand tu coche la case /raw/ en pastant.
+** Numéros de ligne
+Pour avoir de magnifiques numéros à côté de chaque ligne, il te suffit
+d'ajouter le paramètre =&ln= dans l'url.
+** Users
+Grâce à xarch, paste inclut un système d'utilisateurs qui permet de
+retrouver facilement ses pastes. Pour paster avec un user, tu indiques
+ton p'tit nom dans le champ « User » de l'interface web. Si jamais tu
+veux accéder à la liste des paste que tu as fait avec cet user, tu vas
+sur =http://paste.awesom.eu/user/tonptinom=. Attention, tout le monde
+y a accès, donc ne paste pas des trucs trop sensibles :)
+** Script
+Si tu as envie de vite paster un fichier sans devoir l'ouvrir, le
+copier, le coller dans l'interface web et appuyer sur le bouton, tu
+peux utiliser le script [[https://github.com/acieroid/paste-py/blob/master/paste.sh][paste.sh]] (à condition que tu aies [[http://curl.haxx.se/][curl]]
+d'installé). Son fonctionnement est très simple: tu l'appelles avec le
+nom du fichier à paster en argument et il te retourne l'URL du
+paste. Au cas où tu serais un gros flemmard d'assisté, voici la petite
+ligne qui te permettra d'installer le script:
+#+BEGIN_SRC shell
+curl https://raw.github.com/acieroid/paste-py/master/paste.sh > paste.sh && chmod +x paste.sh 
+#+END_SRC
+NougatRillettes a fait quelques ajouts au niveau du script: tu peux
+spécifier l'user en troisième argument (le second argument étant le
+langage), ou bien même mettre un user par défaut en dur dans le
+script. Le script peut aussi utiliser =xclip= ou =xsel= pour /copier/
+l'url de ton paste dans ton presse-papier. Bref pour ça, tu ouvre le
+=paste.sh= avec ton éditeur favori et tu regarde les premières
+lignes. N'oublies pas d'aller mettre ton =paste.sh= dans =~/bin= ou
+tout autre dossier contenant tes éxécutables personnels favoris.
+
+Aussi, si tu souhaites paster quelque chose depuis =stdin=, utilise
+=-= comme argument à =paste.sh=, par exemple:
+#+BEGIN_SRC shell
+uname -a | paste.sh -
+#+END_SRC
+
+** CSS
+Plusieurs CSS sont disponibles pour faire plaisirs à ceux qui
+préfèrent un design clair ou plus sombre:
+  - Un thème clair par défaut repris du site de [[http://pygments.org/][Pygments]]
+  - Un thème sombre repris du défunt [[http://tlc.awesom.eu/][The Lambda Church]]
+  - Un autre thème sombre repris du site du [[http://progmod.org/][Programmeur Moderne]]
+
+Ton navigateur devrait te permettre de choisir l'un ou l'autre style
+(et si c'est pas le cas, tant pis pour toi).
+** mldown
+Il y a eu, pendant un court moment, une option pour formatter un paste
+avec [[http://kiwi.iuwt.fr/~asmanur/mldown/][mldown]]. Hélas un jour mldown s'est mis à fonctionner bizarrement
+et l'option a donc été désactivée. Il est toujours possible de
+l'activer en changeant la variable =mldown_path= dans =paste.py=, mais
+ça n'a pas été testé depuis un certain temps donc le fonctionnement
+n'est pas garanti.
+* Installation
+Si jamais tu as envie de faire tourner paste sur ton serveur, c'est
+très simple. Au niveau des dépendances, tu as besoin de:
+  - [[http://www.python.org/][Python 2]]
+  - [[http://www.tornadoweb.org/][Tornado]]
+  - [[http://pygments.org/][Pygments]]
+
+Tu peux installer ça via le gestionnaire de paquet de ta
+distribution ou si tu as les [[http://pypi.python.org/pypi/setuptools][setuptools]] de python d'installé, via
+=pip=:
+
+#+BEGIN_SRC shell
+pip install tornado pygments
+#+END_SRC
+
+Ensuite, récupère les sources de paste-py depuis [[https://github.com/acieroid/paste-py][le git]] (ou télécharge
+une snapshot du dépôt):
+#+BEGIN_SRC shell
+git clone git://github.com/acieroid/paste-py.git
+#+END_SRC
+
+Et pour lancer (ça listen sur le port 8888 par défaut, tu peux changer
+ça, regarde =--help=):
+
+#+BEGIN_SRC shell
+mkdir pastes/
+python paste.py
+#+END_SRC
+
+Et tu peux même utiliser le script =daemonize.py= (mais il faudra
+sûrement l'adapter au niveau des chemins) si tu veux lancer =paste.py=
+en daemon. Il dépend de =grizzled= (que tu installera facilement avec
+pip).
+* Fonctionnement
+Le fonctionnement de paste est très simple: lorsqu'un nouveau paste
+est soumis, on génère un nom aléatoire et on écrit le paste dans le
+fichier portant ce nom. Ainsi pour retrouver un paste c'est très
+simple, on lit le fichier correspondant au nom du paste
+demandé. Ainsi, pas besoin de base de donnée ou de mécanisme
+compliqué.
+
+Quand l'user d'un paste est spécifié, on mets le fichier du paste dans
+le sous-dossier qui porte le nom de l'user, et on fait donc bien gaffe
+qu'il n'y ait pas de caractères sensible genre des =/=.
+* Performances
+Il fut un temps où paste-py utilisait [[http://wsgi.org/wsgi/][wsgi]] et [[http://gunicorn.org/][gunicorn]], mais
+maintenant il utilise [[http://www.tornadoweb.org/][tornado]], ce qui lui permet d'avoir un bon petit
+boost au niveau des performances. En effet, sur les gros paste, wsgi
+avait tendance à ramer et répondre avec un débit ridicule (en dessous
+des 20ko/s). Avec un petit coup de [[http://www.joedog.org/index/siege-home][siege]], on voit que tornado se
+débrouille beaucoup mieux, autant sur les petit pastes que sur les
+gros. Les deux résultats suivants ont étés obtenus en laissant tourner
+=siege= avec l'option =b= pendant 100 secondes.
+
+Avec un paste de trois caractères:
+
+|                         | Tornado          | WSGI + gunicorn (3 workers) |
+|-------------------------+------------------+-----------------------------|
+| Transactions            | 30934 hits       | 6401 hits                   |
+| Availability            | 100.00%          | 100.00%                     |
+| Elapsed time            | 100.03 secs      | 100.00 secs                 |
+| Data transferred        | 12.07 MB         | 2.62 MB                     |
+| Response time           | 0.05 secs        | 0.23 secs                   |
+| Transaction rate        | 309.24 trans/sec | 64.01 trans/sec             |
+| Throughput              | 0.12 MB/sec      | 0.03 MB/sec                 |
+| Concurrency             | 14.74            | 14.45                       |
+| Successful transactions | 30934            | 6401                        |
+| Failed transactions     | 0                | 0                           |
+| Longest transaction     | 0.39             | 1.48                        |
+| Shortest transaction    | 0.00             | 0.01                        |
+
+Avec un paste de 6.2Mo (récupéré [[http://norvig.com/big.txt][ici]]):
+
+|                         | Tornado        | WSGI + gunicorn (3 workers) |
+|-------------------------+----------------+-----------------------------|
+| Transactions            | 107 hits       | 9 hits                      |
+| Availability            | 100.00 %       | 20.00 %                     |
+| Elapsed time            | 100.00 secs    | 100.02 secs                 |
+| Data transferred        | 675.49 MB      | 2.96MB                      |
+| Response time           | 12.64 secs     | 34.09 secs                  |
+| Transaction rate        | 1.07 trans/sec | 0.09 trans/sec              |
+| Throughput              | 6.75 MB/sec    | 0.03 MB/sec                 |
+| Concurrency             | 13.52          | 3.07                        |
+| Successful transactions | 107            | 9                           |
+| Failed transactions     | 0              | 36                          |
+| Longest transaction     | 13.77          | 37.62                       |
+| Shortest transaction    | 0.97           | 0.00                        |
+
+* FAQ
+** À l'aide ! Il n'y a pas de coloration syntaxique pour le langage X
+La coloration syntaxique se fait au travers de [[http://pygments.org/][pygments]], donc si ton
+langage préféré n'est pas supporté, va d'abord voir s'il est supporté
+par pygments. Si ce n'est pas le cas, c'est chez eux qu'il faut aller
+se plaindre. Si par contre c'est supporté, [[Contact][ping]] moi et je mettrais à
+jour pygments sur le serveur où tourne paste.
+* Contact
+Pour me contacter, tu =/query acieroid= sur epiknet ou freenode, tu
+m'hl sur un chan quelconque où je suis, tu m'envoies un mail à
+=acieroid@awesom.eu=, ou bien t'ouvres une issue sur le [[http://github.com/acieroid/paste-py][github]] comme
+un grand.
+* Historique
+  - 15 Janvier 2014: mise à jour et traduction en anglais
+  - 25 Août 2011: écriture de ce document et ajouts de NougatRillettes
+  - 30 Janvier 2012: ajout d'autres CSS
+  - 2 Mai 2012: suite à la fermeture de paste.pocoo.org, quelques
+    ajouts sont faits:
+    - =paste.sh= accepte =-= comme argument pour lire depuis =stdin=
+    - ajout d'un CSS qui décale le texte du bord pour faire plaisirs
+      au gens qui le trouvent trop collé au bord gauche
+    - ajout des fichiers =.meta= stockant le langage ainsi qu'un
+      commentaire à propos du paste
