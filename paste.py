@@ -202,7 +202,6 @@ html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 html_post = '</body></html>'
 
 def extract_args(uri):
-    uri = uri.encode('utf-8')
     content = map(lambda s: s.split('='), uri.split('&')[1:])
     content = map(lambda v: len(v) != 2 and [v[0], ''] or v, content)
     return dict(content)
@@ -210,7 +209,7 @@ def extract_args(uri):
 def view_paste(paste, args, handler):
     pre = html_pre
     post = ''
-    paste_content = read_paste(filename_path + '/' + paste)
+    paste_content = read_paste(filename_path + '/' + paste.decode('utf-8'))
     meta = read_meta(None, paste)
     if 'raw' in args:
         handler.set_header('Content-Type', 'text/plain; charset=utf-8')
@@ -301,7 +300,7 @@ def view_user(user, handler):
         body += ('<li><a href="%s%s/%s">%s</a>' %
                  (base_url, user, paste, paste))
         if 'comment' in meta and meta['comment'] != '':
-            body += ': %s' % meta['comment']
+            body += ': %s' % meta['comment'].decode('utf-8')
         body += '</li>'
     body += '</ul>'
     handler.content_type = 'text/html'
