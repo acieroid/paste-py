@@ -119,6 +119,7 @@ def comment_field():
 def paste_form():
     res = ''
     res += '<form method="post" action="/" enctype="multipart/form-data">'
+    res += '<input type="text" name="content" style="display: none;">'
     res += '<textarea name="paste" rows="20" cols="80"></textarea><br/>'
     res += language_box()
     res += option_boxes()
@@ -221,6 +222,14 @@ html_invalid_user = html_pre + '''
 <h1>Invalid Username</h1>
 <p>The username you supplied is invalid or considered as spam.<br/>
 Please try another username or file a <a href="https://github.com/acieroid/paste-py/issues">bug report</a> if you think your username is not spammy and should be allowed.</p>
+
+<p>Go <a href="''' + base_url + '''">back</a>.</p>
+''' + html_post
+
+html_spam = html_pre + '''
+<h1>Spam Detected</h1>
+<p>You probably are spam, so we'll just ignore you<br/>
+If you think that's an error, file a <a href="https://github.com/acieroid/paste-py/issues">bug report</a>.</p>
 
 <p>Go <a href="''' + base_url + '''">back</a>.</p>
 ''' + html_post
@@ -342,6 +351,11 @@ class MainHandler(tornado.web.RequestHandler):
         elif self.get_argument('paste', False):
             args = {k: v[0].decode('utf-8') # python and utf-8, wtf.
                     for k, v in self.request.arguments.items()}
+            # the field 'content' should be empty, unless filled by bots
+            if self.get_argument('content', '') != '':
+                self.set_status(404)
+                self.write(html_spam)
+                return
             add_paste(self.get_argument('user', '').encode('utf-8'),
                       self.get_argument('paste').encode('utf-8'),
                       self.get_argument('comment', '').encode('utf-8'),
