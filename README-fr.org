@@ -2,6 +2,9 @@
 #+EMAIL:
 paste-py - La documentation
 
+(Note: cette documentation reste à jour, mais moins que la [[https://github.com/acieroid/paste-py][vraie
+documentation]]).
+
 Tu as toujours tout voulu savoir sur comment utiliser [[http://paste.awesom.eu][paste]] ? Tu t'es
 toujours dit qu'un script pour paster directement depuis la ligne de
 commande serait utile ? Ou qu'un accès en « raw » serait pratique pour
@@ -202,7 +205,7 @@ un grand.
   - 2 Mai 2012: suite à la fermeture de paste.pocoo.org, quelques
     ajouts sont faits:
     - =paste.sh= accepte =-= comme argument pour lire depuis =stdin=
-    - ajout d'un CSS qui décale le texte du bord pour faire plaisirs
+    - ajout d'un CSS qui décale le texte du bord pour faire plaisir
       au gens qui le trouvent trop collé au bord gauche
     - ajout des fichiers =.meta= stockant le langage ainsi qu'un
       commentaire à propos du paste

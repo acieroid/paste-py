@@ -12,14 +12,15 @@ from pygments.lexers import get_lexer_by_name, get_lexer_for_filename, get_all_l
 from pygments.formatters import HtmlFormatter
 from pygments.util import ClassNotFound
 
-from string import ascii_letters, digits
-from random import choice
-from os.path import isfile, dirname, basename, exists
 from os import mkdir, listdir
-from subprocess import Popen, PIPE
+from os.path import isfile, dirname, basename, exists
 from pickle import dump, load
+from random import choice
 from re import match
+from string import ascii_letters, digits
+from subprocess import Popen, PIPE
 from sys import argv
+from urllib import quote
 
 ### Options
 title = 'Paste it §'
