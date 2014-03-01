@@ -34,8 +34,23 @@ linenos_type = 'table' # 'table', 'inline' or '' (table is copy-paste friendly)
 base_url = '/'
 production = False
 
+spam = ["buy ", "phentermine", "pill", "cialis", "carisoprodol", "soma ",
+        " soma", "carisoprodol", " mg", "30mg", "adipex", "business",
+        "loan", "credit", "cash ", " cash", "viagra", "phentramine",
+        "advance", "pay day", "payday", "weltmine" "metermine", "tramadol",
+        "ultram", "duromine", "side effects", "prescription", "vanadom",
+        "stomach", "tablets", "tadalafil", "drug", "tamoxifen", "synthroid",
+        "vardenafil", "tadalafil", "vitamin", "accutane", "adderral",
+        "strattera", "acyclovir", "xanax", "loan"]
+
 def valid_username(username):
-    return not ('/' in username)
+    legal = not (('/' in username) or (' ' in username))
+    if not legal:
+        return False
+    for kw in spam:
+        if username.lower().find(kw) != -1:
+            return False
+    return True
 
 ### Highlight & format
 def highlight_code(code, lang, linenos=''):
@@ -202,6 +217,14 @@ html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 
 html_post = '</body></html>'
 
+html_invalid_user = html_pre + '''
+<h1>Invalid Username</h1>
+<p>The username you supplied is invalid or considered as spam.<br/>
+Please try another username or file a <a href="https://github.com/acieroid/paste-py/issues">bug report</a> if you think your username is not spammy and should be allowed.</p>
+
+<p>Go <a href="''' + base_url + '''">back</a>.</p>
+''' + html_post
+
 def extract_args(uri):
     content = map(lambda s: s.split('='), uri.split('&')[1:])
     content = map(lambda v: len(v) != 2 and [v[0], ''] or v, content)
@@ -247,7 +270,8 @@ def view_paste(paste, args, handler):
 
 def add_paste(user, content, comment, args, handler):
     if not valid_username(user):
-        raise tornado.web.HTTPError(404)
+        handler.write(html_invalid_user)
+        return
 
     paste = basename(dump_paste(content, user))
     options = paste
