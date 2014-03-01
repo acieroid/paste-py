@@ -273,7 +273,7 @@ def add_paste(user, content, comment, args, handler):
     dump_meta(user, paste, meta)
     if 'script' in args:
         handler.set_header('Content-Type', 'text/plain; charset=utf-8')
-        handler.write(options)
+        handler.write(quote(options))
         return
     handler.redirect(base_url + options);
 
