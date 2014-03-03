@@ -130,7 +130,7 @@ def paste_form():
 
 ### Access to disk (read & write paste)
 def user_dir(user):
-    return "%s/%s" % (filename_path, user)
+    return '%s/%s' % (filename_path, user)
 
 def random_filename():
     res = ''
@@ -241,7 +241,7 @@ def extract_args(uri):
 def view_paste(paste, args, handler):
     pre = html_pre
     post = ''
-    paste_content = read_paste(filename_path + '/' + paste.decode('utf-8'))
+    paste_content = read_paste(filename_path + '/' + paste)
     meta = read_meta(None, paste)
     if 'raw' in args:
         handler.set_header('Content-Type', 'text/plain; charset=utf-8')
@@ -344,7 +344,7 @@ def view_user(user, handler):
 ### App
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        args = extract_args(self.request.uri)
+        args = extract_args(self.request.uri.encode('utf-8'))
         if self.get_argument('id', False):
             view_paste(self.get_argument('id').encode('utf-8'), args, self)
         elif self.get_argument('paste', False):
@@ -368,16 +368,16 @@ class MainHandler(tornado.web.RequestHandler):
 
 class ViewHandler(tornado.web.RequestHandler):
     def get(self, name, args, last):
-        view_paste(name.encode('utf-8'), extract_args(args), self)
+        view_paste(name.encode('utf-8'), extract_args(args.encode('utf-8')), self)
 
 class UserViewHandler(tornado.web.RequestHandler):
     def get(self, user, name, args, last):
         paste = user.encode('utf-8') + '/' + name.encode('utf-8')
-        view_paste(paste, extract_args(args), self)
+        view_paste(paste, extract_args(args.encode('utf-8')), self)
 
 class UserHandler(tornado.web.RequestHandler):
     def get(self, user):
-        view_user(user, self)
+        view_user(user.encode('utf-8'), self)
 
 class RawHandler(tornado.web.RequestHandler):
     def get(self, name):
@@ -413,7 +413,7 @@ def run():
     if options.socket:
         print('Listening on {}'.format(options.socket))
         server = HTTPServer(application)
-        socket = bind_unix_socket(options.socket)
+        socket = bind_unix_socket(options.socket, mode=0777)
         server.add_socket(socket)
     else:
         print('Listening on {}:{}'.format(options.addr, options.port))
