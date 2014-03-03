@@ -20,7 +20,6 @@ from re import match
 from string import ascii_letters, digits
 from subprocess import Popen, PIPE
 from sys import argv
-from urllib import quote
 
 ### Options
 title = 'Paste it §'
@@ -306,7 +305,7 @@ def add_paste(user, content, comment, args, handler):
     dump_meta(user, paste, meta)
     if 'script' in args:
         handler.set_header('Content-Type', 'text/plain; charset=utf-8')
-        handler.write(quote(options))
+        handler.write(options)
         return
     handler.redirect(base_url + options);
 
