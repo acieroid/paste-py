@@ -4,7 +4,7 @@ usage="Usage: $0 [-s] [-l language] [-u user] [-c] [ -C copy_command ] [ -p past
 -s: toggles silent mode (do not print the final URL)\n
 -c: copies the final URL to clipboard"
 
-if [[ "$#" -lt 1 ]] ; then
+if [ "$#" -lt 1 ] ; then
     echo -e $usage;
     exit
 fi
@@ -16,18 +16,18 @@ lang=""
 print="yes"
 
 which xclip > /dev/null
-if [ $? -eq 0 ] ; then
-    copy_cmd="`which xclip` -i"
+if [ "$?" -eq 0 ] ; then
+    copy_cmd="$(which xclip) -i"
 else
     which xsel > /dev/null
-    if [ $? -eq 0 ] ; then
-        copy_cmd="`which xsel`"
+    if [ "$?" -eq 0 ] ; then
+        copy_cmd="$(which xsel)"
     fi
 fi
 
 while getopts  :l:u:csC:p: option
 do
-    case $option in
+    case "$option" in
         l) language="$OPTARG";;
 
         u) user="$OPTARG";;
@@ -49,11 +49,11 @@ done
 shift $(($OPTIND - 1))
 file=$1
 
-if [ ! $language ] ; then
-    ext="`echo \"$file\"|sed -e 's/.*\.//'`"
+if [ ! "$language" ] ; then
+    ext="$(echo \"$file\"|sed -e 's/.*\.//')"
 fi
 
-paste=$(curl -d "hl=${language}&ext=${ext}&user=${user}&escape=on&script" --data-urlencode paste@${file} "$pastebin_url" 2>/dev/null)
+paste=$(curl -d "hl=${language}&ext=${ext}&user=${user}&escape=on&script" --data-urlencode "paste@${file}" "$pastebin_url" 2>/dev/null)
 
 final="$pastebin_url/$paste"
 if [ "$print" = "yes" ] ; then
