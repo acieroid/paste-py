@@ -211,6 +211,7 @@ html_pre = '''<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <link rel="stylesheet" type="text/css" href="/paste.css" title="Clear"/>
   <link rel="stylesheet" type="text/css" href="/paste-margin.css" title="Clear with margin"/>
+  <link rel="alternate stylesheet" type="text/css" href="/light-center.css" title="Light center design with a bit of css"/>
   <link rel="alternate stylesheet" type="text/css" href="/dark.css" title="Dark"/>
   <link rel="alternate stylesheet" type="text/css" href="/dark2.css" title="Alternative dark"/>
 </head>
