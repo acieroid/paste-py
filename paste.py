@@ -172,6 +172,7 @@ def read_paste(filename):
       raise tornado.web.HTTPError(404)
 
 def pastes_for_user(user):
+    print type(user)
     pastes = []
     try:
       for filename in listdir(user_dir(user)):
@@ -333,7 +334,7 @@ def view_user(user, handler):
         body += ('<li><a href="%s%s/%s">%s</a>' %
                  (base_url, user, paste, paste))
         if 'comment' in meta and meta['comment'] != '':
-            body += ': %s' % meta['comment'].decode('utf-8')
+            body += ': %s' % meta['comment']
         body += '</li>'
     body += '</ul>'
     handler.content_type = 'text/html'
