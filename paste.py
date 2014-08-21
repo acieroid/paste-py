@@ -358,7 +358,7 @@ class MainHandler(tornado.web.RequestHandler):
                 self.write(html_spam)
                 return
             add_paste(self.get_argument('user', '').encode('utf-8'),
-                      self.get_argument('paste').encode('utf-8'),
+                      self.get_argument('paste', strip=False).encode('utf-8'),
                       self.get_argument('comment', '').encode('utf-8'),
                       args, self)
         elif self.get_argument('user', False):
