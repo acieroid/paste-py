@@ -20,6 +20,7 @@ from re import match
 from string import ascii_letters, digits
 from subprocess import Popen, PIPE
 from sys import argv
+import codecs
 
 ### Options
 title = 'Paste it §'
@@ -57,8 +58,7 @@ def highlight_code(code, lang, linenos=''):
         lang = 'text'
     res = highlight(code, get_lexer_by_name(lang),
                     HtmlFormatter(linenos=linenos))
-    # weird but it works
-    return res.encode('iso-8859-1')
+    return res
 
 def list_languages():
     return sorted(map(lambda x: (x[0], x[1][0]), get_all_lexers()),
@@ -159,20 +159,19 @@ def new_path(user):
 
 def dump_paste(content, user):
     filename = new_path(user)
-    with open(filename, 'w') as f:
+    with codecs.open(filename, 'w', 'utf-8') as f:
         f.write(content)
     return filename
 
 ## Users
 def read_paste(filename):
     try:
-        with open(filename, 'r') as f:
+        with codecs.open(filename, 'r', 'utf-8') as f:
             return f.read()
     except IOError:
       raise tornado.web.HTTPError(404)
 
 def pastes_for_user(user):
-    print type(user)
     pastes = []
     try:
       for filename in listdir(user_dir(user)):
@@ -346,23 +345,23 @@ def view_user(user, handler):
 ### App
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        args = extract_args(self.request.uri.encode('utf-8'))
+        args = extract_args(self.request.uri)
         if self.get_argument('id', False):
-            view_paste(self.get_argument('id').encode('utf-8'), args, self)
+            view_paste(self.get_argument('id'), args, self)
         elif self.get_argument('paste', False):
-            args = {k: v[0].decode('utf-8') # python and utf-8, wtf.
+            args = {k: v[0]
                     for k, v in self.request.arguments.items()}
             # the field 'content' should be empty, unless filled by bots
             if self.get_argument('content', '') != '':
                 self.set_status(404)
                 self.write(html_spam)
                 return
-            add_paste(self.get_argument('user', '').encode('utf-8'),
-                      self.get_argument('paste', strip=False).encode('utf-8'),
-                      self.get_argument('comment', '').encode('utf-8'),
+            add_paste(self.get_argument('user', ''),
+                      self.get_argument('paste', strip=False),
+                      self.get_argument('comment', ''),
                       args, self)
         elif self.get_argument('user', False):
-            view_user(self.get_argument('user', '').encode('utf-8'), self)
+            view_user(self.get_argument('user', ''), self)
         else:
             view_index(self)
     def post(self):
@@ -370,25 +369,24 @@ class MainHandler(tornado.web.RequestHandler):
 
 class ViewHandler(tornado.web.RequestHandler):
     def get(self, name, args, last):
-        view_paste(name.encode('utf-8'), extract_args(args.encode('utf-8')), self)
+        view_paste(name, extract_args(args), self)
 
 class UserViewHandler(tornado.web.RequestHandler):
     def get(self, user, name, args, last):
-        paste = user.encode('utf-8') + '/' + name.encode('utf-8')
-        view_paste(paste, extract_args(args.encode('utf-8')), self)
+        paste = user + '/' + name
+        view_paste(paste, extract_args(args, self))
 
 class UserHandler(tornado.web.RequestHandler):
     def get(self, user):
-        view_user(user.encode('utf-8'), self)
+        view_user(user, self)
 
 class RawHandler(tornado.web.RequestHandler):
     def get(self, name):
-        view_paste(name.encode('utf-8'), {'raw': ''}, self)
+        view_paste(name, {'raw': ''}, self)
 
 class UserRawHandler(tornado.web.RequestHandler):
     def get(self, user, name):
-        view_paste(name.encode('utf-8'), {'raw': '',
-                                          'user': user.encode('utf-8')}, self)
+        view_paste(name, {'raw': '', 'user': user}, self)
 
 application = tornado.web.Application([
     (r"/", MainHandler),
