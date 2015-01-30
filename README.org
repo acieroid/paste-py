@@ -51,7 +51,7 @@ You can either launch it as a daemon or not: launch =daemonize.py= or
 listening address. For example:
 
 #+BEGIN_SRC shell
-$ python paste.py --addr=0.0.0.0 --port=8080
+$ LANG=en_US.UTF-8 python paste.py --addr=0.0.0.0 --port=8080
 #+END_SRC
 
 * Design
