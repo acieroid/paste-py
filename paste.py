@@ -413,7 +413,7 @@ def run():
     if options.socket:
         print('Listening on {}'.format(options.socket))
         server = HTTPServer(application)
-        socket = bind_unix_socket(options.socket, mode=0777)
+        socket = bind_unix_socket(options.socket, mode=0o777)
         server.add_socket(socket)
     else:
         print('Listening on {}:{}'.format(options.addr, options.port))
