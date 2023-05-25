@@ -1,2 +1,2 @@
 Pygments==2.7.4
-tornado==4
+tornado==6.3.2
