@@ -61,8 +61,10 @@ def highlight_code(code, lang, linenos=''):
     return res
 
 def list_languages():
-    return sorted(map(lambda x: (x[0], x[1][0]), get_all_lexers()),
-                  key=lambda x: x[1].lower())
+    return sorted (
+        ((x[0], x[1][0]) for x in get_all_lexers() if x[1] != ()),
+        key = lambda x: x[1].lower()
+    )
 
 def lang_from_ext(ext):
     try:
